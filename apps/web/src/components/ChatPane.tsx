@@ -524,15 +524,6 @@ export function ChatPane({
           >
             {t('chat.tabChat')}
           </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'comments'}
-            className={`chat-header-tab${tab === 'comments' ? ' active' : ''}`}
-            onClick={() => setTab('comments')}
-          >
-            {t('chat.tabComments')}
-          </button>
         </div>
         <div className="chat-header-actions">
           <div
@@ -753,16 +744,6 @@ export function ChatPane({
             onProjectMetadataChange={onProjectMetadataChange}
           />
         </>
-      ) : null}
-      {tab === 'comments' ? (
-        <CommentsPanel
-          comments={previewComments}
-          attachedComments={attachedComments}
-          onAttach={onAttachComment}
-          onDetach={onDetachComment}
-          onDelete={onDeleteComment}
-          t={t}
-        />
       ) : null}
     </div>
   );
