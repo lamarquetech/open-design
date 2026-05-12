@@ -9,6 +9,8 @@ import {
   closeDatabase,
   insertConversation,
   insertProject,
+  getConversation,
+  listConversations,
   listLatestProjectRunStatuses,
   listProjectsAwaitingInput,
   openDatabase,
@@ -103,6 +105,23 @@ test('plain text question does not mark awaiting input', () => {
   addMessage(db, conversationId, 'assistant-question', 'assistant', 'Can you clarify the color palette?');
 
   assert.equal(listProjectsAwaitingInput(db).has('project-d'), false);
+});
+
+test('conversation latest run follows assistant message position', () => {
+  const db = createDb();
+  const conversationId = seedProject(db, 'project-latest', 'succeeded');
+
+  upsertMessage(db, conversationId, {
+    id: 'project-latest-running',
+    role: 'assistant',
+    content: 'working',
+    runId: 'project-latest-running-id',
+    runStatus: 'running',
+    startedAt: 20,
+  });
+
+  assert.equal(listConversations(db, 'project-latest')[0]?.latestRun?.status, 'running');
+  assert.equal(getConversation(db, conversationId)?.latestRun?.status, 'running');
 });
 
 test('only succeeded statuses are overridden by awaiting input', () => {
