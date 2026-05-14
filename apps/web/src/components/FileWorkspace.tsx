@@ -13,11 +13,6 @@ import {
   writeProjectTextFile,
 } from '../providers/registry';
 import {
-  contributeGeneratedPluginToOpenDesign,
-  installGeneratedPluginFolder,
-  publishGeneratedPluginToGitHub,
-} from '../state/projects';
-import {
   type ChatCommentAttachment,
   liveArtifactSummaryToWorkspaceEntry,
   type LiveArtifactSummary,
@@ -29,6 +24,7 @@ import {
   type ProjectFile,
 } from '../types';
 import { DesignFilesPanel } from './DesignFilesPanel';
+import type { PluginFolderAgentAction } from './design-files/pluginFolderActions';
 import { FileViewer, LiveArtifactViewer } from './FileViewer';
 import { Icon } from './Icon';
 import { LiveArtifactBadges } from './LiveArtifactBadges';
@@ -54,6 +50,10 @@ interface Props {
   onSavePreviewComment?: (target: PreviewCommentTarget, note: string, attachAfterSave: boolean) => Promise<PreviewComment | null>;
   onRemovePreviewComment?: (commentId: string) => Promise<void>;
   onSendBoardCommentAttachments?: (attachments: ChatCommentAttachment[]) => Promise<void> | void;
+  onPluginFolderAgentAction?: (
+    relativePath: string,
+    action: PluginFolderAgentAction,
+  ) => Promise<void> | void;
   focusMode?: boolean;
   onFocusModeChange?: (next: boolean) => void;
 }
@@ -85,6 +85,7 @@ export function FileWorkspace({
   onSavePreviewComment,
   onRemovePreviewComment,
   onSendBoardCommentAttachments,
+  onPluginFolderAgentAction,
   focusMode = false,
   onFocusModeChange,
 }: Props) {
@@ -609,15 +610,7 @@ export function FileWorkspace({
             onUploadFiles={(picked) => void uploadFiles(picked)}
             onPaste={() => setShowPasteDialog(true)}
             onNewSketch={startNewSketch}
-            onInstallPluginFolder={(relativePath) =>
-              installGeneratedPluginFolder(projectId, relativePath)
-            }
-            onPublishPluginFolder={(relativePath) =>
-              publishGeneratedPluginToGitHub(projectId, relativePath)
-            }
-            onContributePluginFolder={(relativePath) =>
-              contributeGeneratedPluginToOpenDesign(projectId, relativePath)
-            }
+            onPluginFolderAgentAction={onPluginFolderAgentAction}
           />
         ) : isActiveSketch && activeSketch && activeFile ? (
           activeSketch.loaded ? (

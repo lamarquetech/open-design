@@ -88,6 +88,10 @@ import { AvatarMenu } from './AvatarMenu';
 import { ChatPane } from './ChatPane';
 import { decideAutoOpenAfterWrite } from './auto-open-file';
 import { FileWorkspace } from './FileWorkspace';
+import {
+  buildPluginFolderAgentActionPrompt,
+  type PluginFolderAgentAction,
+} from './design-files/pluginFolderActions';
 import { CenteredLoader } from './Loading';
 
 interface Props {
@@ -1474,6 +1478,15 @@ export function ProjectView({
     [streaming, handleSend],
   );
 
+  const handlePluginFolderAgentAction = useCallback(
+    (relativePath: string, action: PluginFolderAgentAction) => {
+      if (streaming) return;
+      const prompt = buildPluginFolderAgentActionPrompt(relativePath, action);
+      void handleSend(prompt, [], []);
+    },
+    [streaming, handleSend],
+  );
+
   const handleExportAsPptx = useCallback(
     (fileName: string) => {
       if (streaming) return;
@@ -2008,6 +2021,7 @@ export function ProjectView({
               onSend={handleSend}
               onStop={handleStop}
               onRequestOpenFile={requestOpenFile}
+              onRequestPluginFolderAgentAction={handlePluginFolderAgentAction}
               initialDraft={initialDraft}
               onSubmitForm={(text) => {
                 if (streaming) return;
@@ -2077,6 +2091,7 @@ export function ProjectView({
           onSavePreviewComment={savePreviewComment}
           onRemovePreviewComment={removePreviewComment}
           onSendBoardCommentAttachments={handleSendBoardCommentAttachments}
+          onPluginFolderAgentAction={handlePluginFolderAgentAction}
           focusMode={workspaceFocused}
           onFocusModeChange={setWorkspaceFocused}
         />

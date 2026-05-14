@@ -124,8 +124,9 @@ describe('AssistantMessage unfinished todo state', () => {
     expect(screen.queryByRole('button', { name: 'Continue remaining tasks' })).toBeNull();
   });
 
-  it('surfaces generated plugin next actions in the latest assistant turn', () => {
+  it('surfaces generated plugin next actions in the latest assistant turn', async () => {
     const onOpen = vi.fn();
+    const onPluginFolderAgentAction = vi.fn(async () => {});
     render(
       <AssistantMessage
         message={{
@@ -153,6 +154,7 @@ describe('AssistantMessage unfinished todo state', () => {
           workspaceFile('generated-plugin/examples/demo.md'),
         ]}
         onRequestOpenFile={onOpen}
+        onRequestPluginFolderAgentAction={onPluginFolderAgentAction}
         isLast
       />,
     );
@@ -161,6 +163,12 @@ describe('AssistantMessage unfinished todo state', () => {
     expect(screen.getByTestId('assistant-plugin-install-generated-plugin')).toBeTruthy();
     expect(screen.getByTestId('assistant-plugin-publish-generated-plugin')).toBeTruthy();
     expect(screen.getByTestId('assistant-plugin-contribute-generated-plugin')).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId('assistant-plugin-contribute-generated-plugin'));
+    expect(onPluginFolderAgentAction).toHaveBeenCalledWith('generated-plugin', 'contribute');
+    expect(
+      await screen.findByText('Sent to the agent. The CLI run will continue in chat.'),
+    ).toBeTruthy();
 
     fireEvent.click(screen.getByTestId('assistant-plugin-open-manifest-generated-plugin'));
     expect(onOpen).toHaveBeenCalledWith('generated-plugin/open-design.json');
