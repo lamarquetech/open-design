@@ -186,6 +186,12 @@ describe('DesignSystemCreationFlow', () => {
     expect(mocks.patchProject).toHaveBeenCalledWith(
       project.id,
       expect.objectContaining({
+        pendingPrompt: expect.stringContaining('ui_kits/app/components/'),
+      }),
+    );
+    expect(mocks.patchProject).toHaveBeenCalledWith(
+      project.id,
+      expect.objectContaining({
         pendingPrompt: expect.stringContaining('tools connectors design-system-package-audit --path .'),
       }),
     );
@@ -193,6 +199,11 @@ describe('DesignSystemCreationFlow', () => {
       project.id,
       'context/source-context.md',
       expect.stringContaining('tools connectors design-system-package-audit --path .'),
+    );
+    expect(mocks.writeProjectTextFile).toHaveBeenCalledWith(
+      project.id,
+      'context/source-context.md',
+      expect.stringContaining('ui_kits/app/components/'),
     );
     expect(window.sessionStorage.getItem(`od:auto-send-first:${project.id}`)).toBe('1');
     expect(onCreated).toHaveBeenCalledWith(project.id);

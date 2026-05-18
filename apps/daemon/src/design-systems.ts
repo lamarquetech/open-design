@@ -654,9 +654,12 @@ async function migrateLegacyDesignSystemPackage(
     copyIfMissing('ui_kits/generated_interface/index.html', 'ui_kits/app/index.html'),
   ]);
 
-  const hasLegacyArtifacts = await hasAnyLegacyDesignSystemArtifact(dir);
-  if (!hasLegacyArtifacts && !migratedArtifacts.some(Boolean)) return;
   const appKitExists = await fileExists(path.join(dir, 'ui_kits', 'app', 'index.html'));
+  const hasLegacyArtifacts = await hasAnyLegacyDesignSystemArtifact(dir);
+  if (!hasLegacyArtifacts && !migratedArtifacts.some(Boolean)) {
+    if (appKitExists) await writeDefaultUiKitComponentsIfMissing(dir, title);
+    return;
+  }
 
   await Promise.all([
     writeIfMissing(
@@ -673,8 +676,35 @@ async function migrateLegacyDesignSystemPackage(
           `# ${title} UI Kit\n\nThis package was migrated from an earlier Open Design design-system workspace. Use \`index.html\` as the applied interface example and replace it with source-backed modular components when new repository evidence is available.\n`,
         )
       : Promise.resolve(false),
+    appKitExists
+      ? writeDefaultUiKitComponentsIfMissing(dir, title)
+      : Promise.resolve(false),
   ]);
   await removeLegacyDesignSystemArtifacts(dir);
+}
+
+async function writeDefaultUiKitComponentsIfMissing(dir: string, title: string): Promise<boolean> {
+  const componentDir = path.join(dir, 'ui_kits', 'app', 'components');
+  const componentSpecs = [
+    ['App.jsx', 'App', 'Composes the workspace shell, navigation rail, review content, and composer surface.'],
+    ['Sidebar.jsx', 'Sidebar', 'Defines the compact navigation rail and active-section rhythm.'],
+    ['PreviewCard.jsx', 'PreviewCard', 'Captures a reusable review card with title, summary, state, and action slots.'],
+    ['Composer.jsx', 'Composer', 'Models the input/composer area used to collect design feedback and follow-up requests.'],
+  ] as const;
+  let wroteAny = false;
+  await mkdir(componentDir, { recursive: true });
+  for (const [fileName, componentName, purpose] of componentSpecs) {
+    const target = path.join(componentDir, fileName);
+    try {
+      const existing = await stat(target);
+      if (existing.isFile()) continue;
+    } catch (err) {
+      if (!isAbsenceError(err)) throw err;
+    }
+    await writeFile(target, renderUiKitComponent(componentName, title, purpose), 'utf8');
+    wroteAny = true;
+  }
+  return wroteAny;
 }
 
 async function hasAnyLegacyDesignSystemArtifact(dir: string): Promise<boolean> {
@@ -796,6 +826,7 @@ async function writeGeneratedDesignSystemFiles(
     mkdir(path.join(dir, 'src', 'assets'), { recursive: true }),
     mkdir(path.join(dir, 'src', 'components'), { recursive: true }),
     mkdir(path.join(dir, 'ui_kits', 'app'), { recursive: true }),
+    mkdir(path.join(dir, 'ui_kits', 'app', 'components'), { recursive: true }),
   ]);
 
   const palette = normalizeSwatches(input.body);
@@ -921,10 +952,43 @@ async function writeGeneratedDesignSystemFiles(
     ),
     writeFile(
       path.join(dir, 'ui_kits', 'app', 'README.md'),
-      `# ${input.title} UI Kit\n\nUse \`index.html\` as the applied interface example. Replace this scaffold with source-backed modular components when repository evidence is available.\n`,
+      `# ${input.title} UI Kit\n\nUse \`index.html\` as the applied interface example. Reuse \`components/\` as modular shell, navigation, preview-card, toolbar, and composer building blocks. Replace this scaffold with source-backed modular components when repository evidence is available.\n`,
+      'utf8',
+    ),
+    writeFile(
+      path.join(dir, 'ui_kits', 'app', 'components', 'App.jsx'),
+      renderUiKitComponent('App', input.title, 'Composes the workspace shell, navigation rail, review content, and composer surface.'),
+      'utf8',
+    ),
+    writeFile(
+      path.join(dir, 'ui_kits', 'app', 'components', 'Sidebar.jsx'),
+      renderUiKitComponent('Sidebar', input.title, 'Defines the compact navigation rail and active-section rhythm.'),
+      'utf8',
+    ),
+    writeFile(
+      path.join(dir, 'ui_kits', 'app', 'components', 'PreviewCard.jsx'),
+      renderUiKitComponent('PreviewCard', input.title, 'Captures a reusable review card with title, summary, state, and action slots.'),
+      'utf8',
+    ),
+    writeFile(
+      path.join(dir, 'ui_kits', 'app', 'components', 'Composer.jsx'),
+      renderUiKitComponent('Composer', input.title, 'Models the input/composer area used to collect design feedback and follow-up requests.'),
       'utf8',
     ),
   ]);
+}
+
+function renderUiKitComponent(name: string, title: string, purpose: string): string {
+  return `export function ${name}({ children, title = '${escapeJsString(title)}' }) {
+  return (
+    <section className="od-ui-kit-${name.toLowerCase()}">
+      <small>${escapeTsxText(purpose)}</small>
+      <h2>{title}</h2>
+      <div>{children}</div>
+    </section>
+  );
+}
+`;
 }
 
 function stripPrefixAndValidateId(id: string, prefix = ''): string | null {
@@ -1665,6 +1729,10 @@ function escapeHtml(raw: string): string {
 
 function escapeTsxText(raw: string): string {
   return raw.replace(/[{}<>]/g, '');
+}
+
+function escapeJsString(raw: string): string {
+  return raw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
 async function readFileOptional(file: string): Promise<string | undefined> {

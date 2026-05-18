@@ -76,6 +76,25 @@ Use this skill when creating Open Design artifacts that should match the Cherry 
 Keep layouts compact, app-like, and productivity-focused. Use real component states, avoid generic landing pages, and keep typography and spacing grounded in the captured evidence.
 `;
 
+const REFERENCE_AUDIT_SKILL = `---
+name: cherry-studio-design
+description: Use this skill to generate well-branded interfaces and assets for Cherry Studio prototypes and production-adjacent UI.
+user-invocable: true
+---
+
+Read README.md, colors_and_type.css, the preview cards, preserved fonts, and the modular UI kit before generating any new interface. This frontmatter-first shape matches Claude Design exported packages, which may not include a top-level Markdown heading.
+
+**What's inside:**
+- Visual foundations for colors, typography, spacing, radius, shadows, and interaction states.
+- CSS design tokens in colors_and_type.css.
+- Preserved brand assets and fonts.
+- Preview cards showing the complete design-system review surface.
+- UI kit with modular components for shell, sidebar, chat surfaces, and composer flows.
+
+**How to use:**
+Copy assets, load the token CSS, inspect the preview cards, then compose new HTML or app UI from the modular kit. Keep generated surfaces compact, workspace-oriented, and grounded in the captured evidence instead of inventing a marketing page.
+`;
+
 const AUDIT_TOKENS_CSS = `:root {
   --cherry-bg: #f7f8fa;
   --cherry-surface: #ffffff;
@@ -348,7 +367,7 @@ describe('connectors tool CLI', () => {
     await mkdir(path.join(tmpDir, 'ui_kits/app'), { recursive: true });
     await mkdir(path.join(tmpDir, 'assets'), { recursive: true });
     await mkdir(path.join(tmpDir, 'fonts/ubuntu'), { recursive: true });
-    await mkdir(path.join(tmpDir, 'context/local-code/cherry/files/src'), { recursive: true });
+    await mkdir(path.join(tmpDir, 'context/local-code/cherry/files/src/components'), { recursive: true });
     await writeFile(path.join(tmpDir, 'DESIGN.md'), AUDIT_DESIGN_MD);
     await writeFile(path.join(tmpDir, 'README.md'), AUDIT_README);
     await writeFile(path.join(tmpDir, 'SKILL.md'), AUDIT_SKILL);
@@ -365,6 +384,13 @@ describe('connectors tool CLI', () => {
     }
     await writeFile(path.join(tmpDir, 'ui_kits/app/index.html'), auditHtml('Cherry Studio UI kit'));
     await writeFile(path.join(tmpDir, 'ui_kits/app/README.md'), '# UI kit\n');
+    await mkdir(path.join(tmpDir, 'ui_kits/app/components'), { recursive: true });
+    for (const componentName of ['App.jsx', 'Sidebar.jsx', 'ChatArea.jsx']) {
+      await writeFile(
+        path.join(tmpDir, 'ui_kits/app/components', componentName),
+        `export function ${componentName.replace(/\.jsx$/u, '')}(){ return <section>${componentName}</section>; }\n`,
+      );
+    }
     await writeFile(path.join(tmpDir, 'assets/logo.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
     await writeFile(path.join(tmpDir, 'fonts/ubuntu/Ubuntu-Regular.ttf'), Buffer.from('font-data'));
     await writeFile(path.join(tmpDir, 'context/source-context.md'), [
@@ -389,8 +415,12 @@ describe('connectors tool CLI', () => {
       '',
       '### Fonts',
       '- fonts/ubuntu/Ubuntu-Regular.ttf -> `context/local-code/cherry/files/fonts/ubuntu/Ubuntu-Regular.ttf` (binary asset)',
+      '',
+      '### Reusable components',
+      '- src/components/Button.tsx -> `context/local-code/cherry/files/src/components/Button.tsx` (source)',
     ].join('\n'));
     await writeFile(path.join(tmpDir, 'context/local-code/cherry/files/src/tokens.css'), ':root { --color-primary: #00b96b; }');
+    await writeFile(path.join(tmpDir, 'context/local-code/cherry/files/src/components/Button.tsx'), 'export function Button(){ return <button />; }');
 
     const result = await runConnectorsToolCli(['design-system-package-audit', '--path', tmpDir]);
 
@@ -448,7 +478,7 @@ describe('connectors tool CLI', () => {
     await mkdir(path.join(tmpDir, 'assets'), { recursive: true });
     await mkdir(path.join(tmpDir, 'fonts/ubuntu'), { recursive: true });
     await writeFile(path.join(tmpDir, 'README.md'), AUDIT_README);
-    await writeFile(path.join(tmpDir, 'SKILL.md'), AUDIT_SKILL);
+    await writeFile(path.join(tmpDir, 'SKILL.md'), REFERENCE_AUDIT_SKILL);
     await writeFile(path.join(tmpDir, 'colors_and_type.css'), AUDIT_TOKENS_CSS);
     for (const fileName of [
       'colors-primary.html',
@@ -465,6 +495,13 @@ describe('connectors tool CLI', () => {
     }
     await writeFile(path.join(tmpDir, 'ui_kits/app/index.html'), auditHtml('Cherry Studio UI kit'));
     await writeFile(path.join(tmpDir, 'ui_kits/app/README.md'), '# UI kit\n');
+    await mkdir(path.join(tmpDir, 'ui_kits/app/components'), { recursive: true });
+    for (const componentName of ['App.jsx', 'Sidebar.jsx', 'ChatArea.jsx']) {
+      await writeFile(
+        path.join(tmpDir, 'ui_kits/app/components', componentName),
+        `export function ${componentName.replace(/\.jsx$/u, '')}(){ return <section>${componentName}</section>; }\n`,
+      );
+    }
     await writeFile(path.join(tmpDir, 'assets/logo.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
     await writeFile(path.join(tmpDir, 'fonts/ubuntu/Ubuntu-Regular.ttf'), Buffer.from('font-data'));
 

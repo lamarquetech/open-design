@@ -1495,7 +1495,7 @@ async function auditDesignSystemPackage(
   requireFile('colors_and_type.css', 'Claude Design-style packages need colors_and_type.css for reusable color, type, spacing, radius, and state tokens.');
   await requireContent('DESIGN.md', 800, 'thin_design_rules', 'DESIGN.md is too thin to be a reusable rules document; include source-backed context, foundations, tokens, components, motion, voice, and anti-patterns.', validateDesignRules);
   await requireContent('README.md', 600, 'thin_readme', 'README.md is too thin to explain the package, source evidence, generated files, and reuse workflow.', requireMarkdownHeading);
-  await requireContent('SKILL.md', 500, 'thin_skill', 'SKILL.md is too thin to guide future agents on how to use this design system.', requireMarkdownHeading);
+  await requireContent('SKILL.md', 500, 'thin_skill', 'SKILL.md is too thin to guide future agents on how to use this design system.', validateSkillInstructions);
   await requireContent('colors_and_type.css', 500, 'thin_token_css', 'colors_and_type.css is too thin to carry reusable color, typography, spacing, radius, and state tokens.', validateTokenCss);
 
   const previewFiles = files.filter((filePath) => /^preview\/.+\.html$/u.test(filePath));
@@ -1551,6 +1551,17 @@ async function auditDesignSystemPackage(
 
   const hasAssetEvidence = evidenceHasAssets(evidenceText) || files.some((filePath) => /^context\/(github|local-code)\/.+\/files\/.+\.(svg|png|jpe?g|webp|ico)$/iu.test(filePath));
   const hasFontEvidence = evidenceHasFonts(evidenceText) || files.some((filePath) => /^context\/(github|local-code)\/.+\/files\/.+\.(ttf|otf|woff2?)$/iu.test(filePath));
+  const hasComponentEvidence = evidenceHasReusableComponents(evidenceText)
+    || files.some((filePath) => /^context\/(github|local-code)\/.+\/files\/.+(?:\/|^)(components?|ui|app|layout|shell|navbar|sidebar|chat|input|composer|assistant|message|model)[^/]*\/?.*\.(tsx|ts|jsx|js|css|scss|less)$/iu.test(filePath));
+  const uiKitComponentFiles = files.filter((filePath) => /^ui_kits\/app\/components\/.+\.(jsx|tsx|js|ts|css|html)$/iu.test(filePath));
+  if (hasComponentEvidence && uiKitComponentFiles.length < 3) {
+    addIssue(
+      'error',
+      'missing_modular_ui_kit',
+      `Source evidence includes reusable product components; add at least 3 reusable files under ui_kits/app/components/. Found ${uiKitComponentFiles.length}.`,
+      'ui_kits/app/components/',
+    );
+  }
   if (hasAssetEvidence) {
     if (!files.some((filePath) => /^assets\/.+\.(svg|png|jpe?g|webp|ico)$/iu.test(filePath))) {
       addIssue('error', 'missing_preserved_assets', 'Source evidence includes brand assets; preserve selected logos/icons/avatars under assets/.', 'assets/');
@@ -1596,6 +1607,14 @@ async function readAuditText(projectPath: string, relativePath: string): Promise
 
 function requireMarkdownHeading(text: string): string | undefined {
   return /^#\s+\S+/mu.test(text) ? undefined : 'Expected a top-level markdown heading.';
+}
+
+function validateSkillInstructions(text: string): string | undefined {
+  if (requireMarkdownHeading(text) === undefined) return undefined;
+  if (/^---\n[\s\S]*?\n---/u.test(text) && /^description:\s+\S+/mu.test(text) && /\*\*How to use:\*\*/iu.test(text)) {
+    return undefined;
+  }
+  return 'Expected a top-level markdown heading or skill frontmatter with usage instructions.';
 }
 
 function validateDesignRules(text: string): string | undefined {
@@ -1662,6 +1681,10 @@ function evidenceHasAssets(evidenceText: string): boolean {
 
 function evidenceHasFonts(evidenceText: string): boolean {
   return /### Fonts|\.(ttf|otf|woff2?)\b/iu.test(evidenceText);
+}
+
+function evidenceHasReusableComponents(evidenceText: string): boolean {
+  return /### Reusable components|### App shell and navigation|### Chat and input surfaces|components?\/|ui_kits?\/|sidebar|navbar|composer|message bubble|assistant row|model selector/iu.test(evidenceText);
 }
 
 async function requestJson(baseUrl: URL, token: string, pathname: string, init: RequestInit = {}): Promise<{ status: number; body: unknown }> {

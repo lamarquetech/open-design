@@ -162,6 +162,10 @@ describe('design systems registry', () => {
         'context/provenance.json',
         'colors_and_type.css',
         'preview/colors-primary.html',
+        'ui_kits/app/components/App.jsx',
+        'ui_kits/app/components/Sidebar.jsx',
+        'ui_kits/app/components/PreviewCard.jsx',
+        'ui_kits/app/components/Composer.jsx',
       ]),
     );
   });
@@ -200,6 +204,10 @@ describe('design systems registry', () => {
         'preview/brand-assets.html',
         'ui_kits/app/index.html',
         'ui_kits/app/README.md',
+        'ui_kits/app/components/App.jsx',
+        'ui_kits/app/components/Sidebar.jsx',
+        'ui_kits/app/components/PreviewCard.jsx',
+        'ui_kits/app/components/Composer.jsx',
       ]),
     );
     expect(files?.map((file) => file.path)).not.toEqual(
@@ -216,6 +224,32 @@ describe('design systems registry', () => {
       .resolves
       .toMatchObject({
         content: expect.stringContaining('legacy app kit'),
+      });
+  });
+
+  it('adds modular UI-kit components to existing app kits', async () => {
+    await mkdir(path.join(root, 'legacy', 'ui_kits', 'app'), { recursive: true });
+    await writeFile(
+      path.join(root, 'legacy', 'DESIGN.md'),
+      '# Legacy System\n\n> Category: Custom\n> Surface: web\n\nLegacy body.\n',
+    );
+    await writeFile(path.join(root, 'legacy', 'README.md'), '# Legacy\n');
+    await writeFile(path.join(root, 'legacy', 'ui_kits', 'app', 'index.html'), '<!doctype html><html><body>app kit</body></html>');
+
+    const files = await listUserDesignSystemFiles(root, 'user:legacy');
+
+    expect(files?.map((file) => file.path)).toEqual(
+      expect.arrayContaining([
+        'ui_kits/app/components/App.jsx',
+        'ui_kits/app/components/Sidebar.jsx',
+        'ui_kits/app/components/PreviewCard.jsx',
+        'ui_kits/app/components/Composer.jsx',
+      ]),
+    );
+    await expect(readUserDesignSystemFile(root, 'user:legacy', 'ui_kits/app/components/App.jsx'))
+      .resolves
+      .toMatchObject({
+        content: expect.stringContaining('Composes the workspace shell'),
       });
   });
 
