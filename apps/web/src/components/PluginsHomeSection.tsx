@@ -70,7 +70,6 @@ export function PluginsHomeSection({
     pickCategory,
     pickSubcategory,
     clearFacets,
-    hasActiveFacet,
     mode,
     setMode,
     query,
@@ -130,11 +129,8 @@ export function PluginsHomeSection({
               onToggleFeatured={() =>
                 setMode(mode === 'featured' ? 'all' : 'featured')
               }
-              filteredCount={filtered.length}
               query={query}
               onQueryChange={setQuery}
-              hasActiveFacet={hasActiveFacet}
-              onClearFacets={clearFacets}
             />
             {selection.category ? (
               <SubcategoryRow
@@ -256,19 +252,15 @@ interface CategoryRowProps {
   featuredCount: number;
   featuredActive: boolean;
   onToggleFeatured: () => void;
-  filteredCount: number;
   query: string;
   onQueryChange: (next: string) => void;
-  hasActiveFacet: boolean;
-  onClearFacets: () => void;
 }
 
 // Single combined filter bar: Featured override chip + category pills
-// on the left, search + result count + clear-filters affordance on
-// the right. Folding what used to be three separate strips (mode
-// row, search-in-header, category row) into one keeps the eye on
-// a single horizontal control surface instead of scanning four
-// floating clusters.
+// on the left, search field on the right. Each chip carries its own
+// count, and the "All" chip doubles as a clear-filters affordance,
+// so a separate `X / Y` counter and `Clear` link would just repeat
+// what the chip strip already shows.
 function CategoryRow({
   options,
   selectedSlug,
@@ -277,11 +269,8 @@ function CategoryRow({
   featuredCount,
   featuredActive,
   onToggleFeatured,
-  filteredCount,
   query,
   onQueryChange,
-  hasActiveFacet,
-  onClearFacets,
 }: CategoryRowProps) {
   if (options.length === 0) return null;
   return (
@@ -334,19 +323,6 @@ function CategoryRow({
       </div>
       <div className="plugins-home__facet-tools">
         <SearchInput value={query} onChange={onQueryChange} />
-        <span className="plugins-home__count" data-testid="plugins-home-count">
-          {filteredCount} / {totalVisible}
-        </span>
-        {hasActiveFacet ? (
-          <button
-            type="button"
-            className="plugins-home__linkbtn"
-            onClick={onClearFacets}
-            data-testid="plugins-home-clear"
-          >
-            Clear
-          </button>
-        ) : null}
       </div>
     </div>
   );
