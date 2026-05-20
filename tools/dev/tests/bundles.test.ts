@@ -6,14 +6,14 @@ import { describe, it } from "node:test";
 
 import type { ToolDevConfig } from "../src/config.js";
 import {
-  TOOLS_DEV_WEB_BUNDLE_ENTRY,
+  WEB_BUNDLE_ENTRY,
   addToolsDevBundle,
   deleteToolsDevBundle,
   listToolsDevBundles,
-  normalizeToolsDevBundleRef,
+  normalizeBundleRef,
   readToolsDevActivation,
-  resolveToolsDevWebImplementation,
-  writeToolsDevWebSource,
+  resolveWebImplementation,
+  writeWebSource,
 } from "../src/bundles.js";
 
 async function makeTempConfig(): Promise<ToolDevConfig> {
@@ -71,7 +71,7 @@ describe("tools-dev bundles", () => {
     const config = await makeTempConfig();
 
     const activation = await readToolsDevActivation(config);
-    const implementation = await resolveToolsDevWebImplementation(config);
+    const implementation = await resolveWebImplementation(config);
 
     assert.deepEqual(activation, { version: 1, web: { type: "workspace" } });
     assert.equal(implementation.entryPath, config.apps.web.sidecarEntryPath);
@@ -81,20 +81,20 @@ describe("tools-dev bundles", () => {
   it("stores bundle directories through packages/bundle and resolves active web source", async () => {
     const config = await makeTempConfig();
     const sourcePath = await makeBundleSource(config.namespaceRoot);
-    const ref = normalizeToolsDevBundleRef({ version: "dev.1" });
+    const ref = normalizeBundleRef({ version: "dev.1" });
 
     const added = await addToolsDevBundle({ config, ref, sourcePath });
-    await writeToolsDevWebSource(config, {
-      entry: TOOLS_DEV_WEB_BUNDLE_ENTRY,
+    await writeWebSource(config, {
+      entry: WEB_BUNDLE_ENTRY,
       ref,
       type: "bundle",
     });
-    const implementation = await resolveToolsDevWebImplementation(config);
+    const implementation = await resolveWebImplementation(config);
     const bundles = await listToolsDevBundles(config);
 
     assert.equal(added.ref.key, "od:sidecar:web");
     assert.equal(bundles.length, 1);
-    assert.equal(implementation.entryPath, path.join(added.path, TOOLS_DEV_WEB_BUNDLE_ENTRY));
+    assert.equal(implementation.entryPath, path.join(added.path, WEB_BUNDLE_ENTRY));
     assert.equal(implementation.implementation?.source, "bundle");
     if (implementation.implementation?.source !== "bundle") throw new Error("expected bundle implementation");
     assert.equal(implementation.implementation.basePath, config.bundleBasePath);
@@ -105,16 +105,16 @@ describe("tools-dev bundles", () => {
   it("rejects bundle web entries that escape the resolved bundle path", async () => {
     const config = await makeTempConfig();
     const sourcePath = await makeBundleSource(config.namespaceRoot);
-    const ref = normalizeToolsDevBundleRef({ version: "dev.2" });
+    const ref = normalizeBundleRef({ version: "dev.2" });
 
     await addToolsDevBundle({ config, ref, sourcePath });
-    await writeToolsDevWebSource(config, {
+    await writeWebSource(config, {
       entry: "../sidecar/index.ts",
       ref,
       type: "bundle",
     });
 
-    await assert.rejects(resolveToolsDevWebImplementation(config), /escaped bundle content/);
+    await assert.rejects(resolveWebImplementation(config), /escaped bundle content/);
   });
 
   it("records explicit web sidecar paths without adding them to the bundle store", async () => {
@@ -123,12 +123,12 @@ describe("tools-dev bundles", () => {
     await mkdir(path.dirname(entryPath), { recursive: true });
     await writeFile(entryPath, "export {};\n", "utf8");
 
-    await writeToolsDevWebSource(config, {
+    await writeWebSource(config, {
       entryPath,
       persistent: true,
       type: "explicitPath",
     });
-    const implementation = await resolveToolsDevWebImplementation(config);
+    const implementation = await resolveWebImplementation(config);
     const bundles = await listToolsDevBundles(config);
 
     assert.deepEqual(bundles, []);
@@ -143,7 +143,7 @@ describe("tools-dev bundles", () => {
   it("deletes stored bundle refs through packages/bundle", async () => {
     const config = await makeTempConfig();
     const sourcePath = await makeBundleSource(config.namespaceRoot);
-    const ref = normalizeToolsDevBundleRef({ version: "dev.3" });
+    const ref = normalizeBundleRef({ version: "dev.3" });
 
     await addToolsDevBundle({ config, ref, sourcePath });
 

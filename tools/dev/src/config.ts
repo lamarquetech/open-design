@@ -104,7 +104,7 @@ function resolveAppConfig(options: {
   };
 }
 
-export function isToolDevAppName(value: string): value is ToolDevAppName {
+export function isAppName(value: string): value is ToolDevAppName {
   return ALL_APPS.includes(value as ToolDevAppName);
 }
 
@@ -114,13 +114,13 @@ function unsupportedAppError(value: string): Error {
 
 export function resolveTargetApps(appName: string | undefined, defaults: readonly ToolDevAppName[]): ToolDevAppName[] {
   if (appName == null) return [...defaults];
-  if (!isToolDevAppName(appName)) throw unsupportedAppError(appName);
+  if (!isAppName(appName)) throw unsupportedAppError(appName);
   return [appName];
 }
 
 export function resolveStartApps(appName: string | undefined): ToolDevAppName[] {
   if (appName == null) return [...DEFAULT_START_APPS];
-  if (!isToolDevAppName(appName)) throw unsupportedAppError(appName);
+  if (!isAppName(appName)) throw unsupportedAppError(appName);
   if (appName === APP_KEYS.WEB) return [APP_KEYS.DAEMON, APP_KEYS.WEB];
   if (appName === APP_KEYS.DESKTOP) return [APP_KEYS.DAEMON, APP_KEYS.WEB, APP_KEYS.DESKTOP];
   return [APP_KEYS.DAEMON];
@@ -133,7 +133,7 @@ export function resolveRunApps(appName: string | undefined): ToolDevAppName[] {
 
 export function resolveStopApps(appName: string | undefined): ToolDevAppName[] {
   if (appName == null) return [...DEFAULT_STOP_APPS];
-  if (!isToolDevAppName(appName)) throw unsupportedAppError(appName);
+  if (!isAppName(appName)) throw unsupportedAppError(appName);
   if (appName === APP_KEYS.WEB) return [APP_KEYS.WEB, APP_KEYS.DAEMON];
   if (appName === APP_KEYS.DESKTOP) return [APP_KEYS.DESKTOP];
   return [APP_KEYS.DAEMON];

@@ -1,6 +1,6 @@
 /**
  * PR #974 round 6 (mrcfps): pin the split-start dev-flow auto-restart
- * sequence in `ensureDaemonGateForDesktop`.
+ * sequence in `ensureDesktopGate`.
  *
  * Background: `tools-dev start daemon` followed by `tools-dev start desktop`
  * was leaving the daemon ungated because `OD_REQUIRE_DESKTOP_AUTH=1`
@@ -25,7 +25,7 @@ import { describe, it } from "node:test";
 import { APP_KEYS, type DaemonStatusSnapshot, type WebStatusSnapshot } from "@open-design/sidecar-proto";
 
 import {
-  ensureDaemonGateForDesktop,
+  ensureDesktopGate,
   type EnsureDaemonGateDeps,
 } from "../src/desktop-auth-gate.js";
 
@@ -96,10 +96,10 @@ function webRunning(): WebStatusSnapshot {
   };
 }
 
-describe("ensureDaemonGateForDesktop", () => {
+describe("ensureDesktopGate", () => {
   it("is a no-op when no daemon is running (regular flow surfaces that)", async () => {
     const { calls, deps } = makeRecorder({ daemon: null, web: null });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     assert.deepEqual(calls, [{ kind: "inspectDaemon" }]);
   });
 
@@ -109,7 +109,7 @@ describe("ensureDaemonGateForDesktop", () => {
     // confirms via STATUS and exits with no side effects. This case
     // protects against a regression that adds an unconditional restart.
     const { calls, deps } = makeRecorder({ daemon: armed(), web: webRunning() });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     assert.deepEqual(calls, [{ kind: "inspectDaemon" }]);
   });
 
@@ -119,7 +119,7 @@ describe("ensureDaemonGateForDesktop", () => {
     // daemon, restarts it gated, and does NOT touch web. Order matters:
     // log -> inspectWeb -> stopApp(daemon) -> startDaemonGated.
     const { calls, deps } = makeRecorder({ daemon: ungated(), web: null });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     assert.equal(calls.length, 5);
     assert.equal(calls[0].kind, "inspectDaemon");
     assert.equal(calls[1].kind, "log");
@@ -140,7 +140,7 @@ describe("ensureDaemonGateForDesktop", () => {
     // Inverting any pair would either leave a transient 502 or restart
     // web against the OLD daemon URL.
     const { calls, deps } = makeRecorder({ daemon: ungated(), web: webRunning() });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     assert.equal(calls.length, 7);
     assert.equal(calls[0].kind, "inspectDaemon");
     assert.equal(calls[1].kind, "log");
@@ -166,7 +166,7 @@ describe("ensureDaemonGateForDesktop", () => {
       url: "http://127.0.0.1:17456",
     };
     const { calls, deps } = makeRecorder({ daemon: ungatedOnExplicitPort, web: null });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     const restart = calls.find((c) => c.kind === "startDaemonGated");
     assert.notEqual(restart, undefined);
     assert.deepEqual(restart, { kind: "startDaemonGated", port: 17456 });
@@ -187,7 +187,7 @@ describe("ensureDaemonGateForDesktop", () => {
       url: "http://127.0.0.1:17573",
     };
     const { calls, deps } = makeRecorder({ daemon: ungatedDaemon, web: webOnExplicitPort });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     const webRestart = calls.find((c) => c.kind === "startWeb");
     assert.notEqual(webRestart, undefined);
     assert.deepEqual(webRestart, { kind: "startWeb", port: 17573 });
@@ -207,7 +207,7 @@ describe("ensureDaemonGateForDesktop", () => {
       url: null,
     };
     const { calls, deps } = makeRecorder({ daemon: ungatedNullishUrl, web: null });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     const restart = calls.find((c) => c.kind === "startDaemonGated");
     assert.deepEqual(restart, { kind: "startDaemonGated", port: null });
   });
@@ -218,7 +218,7 @@ describe("ensureDaemonGateForDesktop", () => {
     // affected services in one message lets them anticipate the
     // disruption without grepping for context.
     const { calls, deps } = makeRecorder({ daemon: ungated(), web: webRunning() });
-    await ensureDaemonGateForDesktop(deps);
+    await ensureDesktopGate(deps);
     const logs = calls.filter((c): c is { kind: "log"; msg: string } => c.kind === "log");
     assert.equal(logs.length, 1);
     assert.match(logs[0].msg, /tools-dev/);

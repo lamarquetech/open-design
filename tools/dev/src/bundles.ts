@@ -16,8 +16,8 @@ import { SIDECAR_ENV, type SidecarImplementationSnapshot } from "@open-design/si
 
 import type { ToolDevConfig } from "./config.js";
 
-export const TOOLS_DEV_WEB_BUNDLE_KEY = "od:sidecar:web";
-export const TOOLS_DEV_WEB_BUNDLE_ENTRY = "sidecar/index.ts";
+export const WEB_BUNDLE_KEY = "od:sidecar:web";
+export const WEB_BUNDLE_ENTRY = "sidecar/index.ts";
 
 export type ToolsDevWebSource =
   | { type: "workspace" }
@@ -58,12 +58,12 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
-export function normalizeToolsDevBundleRef(input: {
+export function normalizeBundleRef(input: {
   key?: string | null;
   version: string;
 }): BundleRef {
   return validateBundleRef({
-    key: input.key == null || input.key.length === 0 ? TOOLS_DEV_WEB_BUNDLE_KEY : input.key,
+    key: input.key == null || input.key.length === 0 ? WEB_BUNDLE_KEY : input.key,
     version: input.version,
   });
 }
@@ -117,7 +117,7 @@ export async function readToolsDevActivation(config: Pick<ToolDevConfig, "bundle
   }
 }
 
-export async function writeToolsDevWebSource(
+export async function writeWebSource(
   config: Pick<ToolDevConfig, "bundleActivationPath">,
   web: ToolsDevWebSource,
 ): Promise<ToolsDevActivationFile> {
@@ -165,7 +165,7 @@ export async function deleteToolsDevBundle(input: {
   });
 }
 
-export async function resolveToolsDevWebImplementation(config: ToolDevConfig): Promise<ToolsDevResolvedWebImplementation> {
+export async function resolveWebImplementation(config: ToolDevConfig): Promise<ToolsDevResolvedWebImplementation> {
   const activation = await readToolsDevActivation(config);
   const source = activation.web;
 

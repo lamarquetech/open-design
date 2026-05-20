@@ -66,7 +66,7 @@ function extractRuntimePort(url: string | null | undefined): number | null {
   }
 }
 
-export async function ensureDaemonGateForDesktop(deps: EnsureDaemonGateDeps): Promise<void> {
+export async function ensureDesktopGate(deps: EnsureDaemonGateDeps): Promise<void> {
   const daemon = await deps.inspectDaemon();
   if (daemon == null) return; // no daemon running; the regular desktop start flow will surface that
   if (daemon.desktopAuthGateActive) return; // already armed; nothing to do

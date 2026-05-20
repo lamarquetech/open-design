@@ -9,7 +9,7 @@ export type StartupLogDiagnostics = {
   lines: string[];
 };
 
-const NATIVE_ADDON_ABI_MISMATCH_PATTERN = /was compiled against a different Node\.js version[\s\S]*?NODE_MODULE_VERSION\s+\d+[\s\S]*?requires\s+NODE_MODULE_VERSION\s+\d+/i;
+const ABI_MISMATCH_RE = /was compiled against a different Node\.js version[\s\S]*?NODE_MODULE_VERSION\s+\d+[\s\S]*?requires\s+NODE_MODULE_VERSION\s+\d+/i;
 const NODE_MODULE_VERSION_PATTERN = /NODE_MODULE_VERSION\s+\d+[\s\S]*?NODE_MODULE_VERSION\s+\d+/i;
 const NEXT_PACKAGE_RESOLUTION_PATTERN = /couldn't find the Next\.js package.*from the project directory:/i;
 
@@ -17,7 +17,7 @@ export function detectLogDiagnostics(lines: readonly string[]): LogDiagnostic[] 
   const logText = lines.join("\n");
   const diagnostics: LogDiagnostic[] = [];
 
-  if (NATIVE_ADDON_ABI_MISMATCH_PATTERN.test(logText) || NODE_MODULE_VERSION_PATTERN.test(logText)) {
+  if (ABI_MISMATCH_RE.test(logText) || NODE_MODULE_VERSION_PATTERN.test(logText)) {
     diagnostics.push({
       message: "Detected a native Node addon ABI mismatch in the daemon log.",
       recommendation: [
