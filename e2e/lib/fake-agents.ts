@@ -144,7 +144,6 @@ async function emitRun(promptText) {
   }
   const isDelayed = promptText.includes('Create a delayed deterministic smoke artifact');
   const isChunked = promptText.includes('Create a chunked deterministic smoke artifact');
-  const isDelayed = promptText.includes('Create a delayed deterministic smoke artifact');
   const isFollowUp = promptText.includes('Create a follow-up deterministic smoke artifact');
   const isDefaultSmoke = promptText.includes('Create a deterministic smoke artifact');
   const isOrbit = promptText.includes("Create today's Orbit daily digest as a Live Artifact.");
