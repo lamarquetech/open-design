@@ -1003,11 +1003,7 @@ export function ProjectView({
 
   const persistArtifact = useCallback(
     async (art: Artifact, projectFilesSnapshot?: ProjectFile[]) => {
-      const baseName = (art.identifier || art.title || 'artifact')
-        .toLowerCase()
-        .replace(/[^a-z0-9_-]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 60) || 'artifact';
+      const baseName = artifactBaseNameFor(art);
       const ext = artifactExtensionFor(art);
       // Pick a name that doesn't collide with an existing project file.
       // The first run uses `<base>.<ext>`; subsequent runs append `-2`, `-3`…
@@ -1866,11 +1862,20 @@ export function ProjectView({
                 const beforeFiles = await refreshProjectFiles();
                 const beforeFileNames = new Set(beforeFiles.map((f) => f.name));
                 let nextFiles = beforeFiles;
+                let recoveredExistingArtifact: ProjectFile | null = null;
                 if (parsedArtifact?.html) {
-                  await persistArtifact(parsedArtifact, nextFiles);
-                  nextFiles = await refreshProjectFiles();
+                  recoveredExistingArtifact = findExistingArtifactProjectFile(parsedArtifact, nextFiles);
+                  if (recoveredExistingArtifact) {
+                    savedArtifactRef.current = recoveredExistingArtifact.name;
+                    requestOpenFile(recoveredExistingArtifact.name);
+                  } else {
+                    await persistArtifact(parsedArtifact, nextFiles);
+                    nextFiles = await refreshProjectFiles();
+                  }
                 }
-                const produced = nextFiles.filter((f) => !beforeFileNames.has(f.name));
+                const produced = recoveredExistingArtifact
+                  ? [recoveredExistingArtifact]
+                  : nextFiles.filter((f) => !beforeFileNames.has(f.name));
                 if (produced.length > 0) {
                   updateMessageById(
                     message.id,
@@ -1974,6 +1979,7 @@ export function ProjectView({
     clearActiveRunRefs,
     refreshProjectFiles,
     persistArtifact,
+    requestOpenFile,
     onProjectsRefresh,
   ]);
 
@@ -3794,6 +3800,47 @@ function artifactExtensionFor(art: Artifact): '.html' | '.jsx' | '.tsx' {
     return '.jsx';
   }
   return '.html';
+}
+
+function artifactBaseNameFor(art: Artifact): string {
+  return (
+    (art.identifier || art.title || 'artifact')
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'artifact'
+  );
+}
+
+function findExistingArtifactProjectFile(
+  art: Artifact,
+  projectFiles: ProjectFile[],
+): ProjectFile | null {
+  const ext = artifactExtensionFor(art);
+  const baseName = artifactBaseNameFor(art);
+  const candidateFileName = `${baseName}${ext}`;
+
+  if (ext === '.html') {
+    const pointerTarget = resolveHtmlPointerArtifactTarget({
+      content: art.html,
+      candidateFileName,
+      projectFiles,
+    });
+    const pointerFile = pointerTarget
+      ? projectFiles.find((file) => file.name === pointerTarget || file.path === pointerTarget)
+      : null;
+    if (pointerFile) return pointerFile;
+  }
+
+  const identifier = art.identifier || '';
+  if (identifier) {
+    const manifestMatches = projectFiles
+      .filter((file) => file.artifactManifest?.metadata?.identifier === identifier)
+      .sort((a, b) => b.mtime - a.mtime);
+    if (manifestMatches[0]) return manifestMatches[0];
+  }
+
+  return projectFiles.find((file) => file.name === candidateFileName) ?? null;
 }
 
 function assistantAgentDisplayName(

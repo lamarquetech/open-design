@@ -134,13 +134,9 @@ test('real daemon run survives a mid-flight reload and restores the delayed arti
   expect(files.map((file) => file.name)).toEqual([DELAYED_FILE]);
   await expectProjectFileToContain(page, projectId, DELAYED_FILE, 'Generated after a delayed daemon turn.');
 
-  const messages = await listConversationMessages(page, projectId, conversationId);
-  expect(messages.filter((message) => message.role === 'user')).toHaveLength(1);
-  expect(messages.filter((message) => message.role === 'assistant')).toHaveLength(1);
-  const assistant = messages.find((message) => message.role === 'assistant');
-  expect(assistant?.runStatus).toBe('succeeded');
-  expect(assistant?.producedFiles?.map((file) => file.name)).toEqual([DELAYED_FILE]);
-  expect(assistant?.events?.some((event) => event.kind === 'thinking')).toBe(true);
+  await expectRestoredDelayedAssistantMessage(page, projectId, conversationId, {
+    expectedUserMessages: 1,
+  });
 });
 
 test('real daemon run survives reload before the create response reaches the browser', async ({ page }) => {
@@ -158,13 +154,9 @@ test('real daemon run survives reload before the create response reaches the bro
   await expectProjectFilesToContain(page, projectId, [DELAYED_FILE], 20_000);
   await expect(page.getByText('I recovered the delayed reasoning path and will persist the artifact now.')).toBeVisible();
 
-  const messages = await listConversationMessages(page, projectId, conversationId);
-  expect(messages.filter((message) => message.role === 'assistant')).toHaveLength(1);
-  const assistant = messages.find((message) => message.role === 'assistant');
-  expect(assistant?.runId).toBeTruthy();
-  expect(assistant?.runStatus).toBe('succeeded');
-  expect(assistant?.producedFiles?.map((file) => file.name)).toEqual([DELAYED_FILE]);
-  expect(assistant?.events?.some((event) => event.kind === 'thinking')).toBe(true);
+  await expectRestoredDelayedAssistantMessage(page, projectId, conversationId, {
+    requireRunId: true,
+  });
 });
 
 test('empty daemon output fails cleanly, persists after reload, and does not leave ghost files', async ({ page }) => {
@@ -581,6 +573,35 @@ async function currentProjectContext(
     throw new Error(`no conversations found for project ${projectId}`);
   }
   return { projectId, conversationId: active.id };
+}
+
+async function expectRestoredDelayedAssistantMessage(
+  page: Page,
+  projectId: string,
+  conversationId: string,
+  options: { expectedUserMessages?: number; requireRunId?: boolean } = {},
+) {
+  await expect
+    .poll(async () => {
+      const messages = await listConversationMessages(page, projectId, conversationId);
+      const assistant = messages.find((message) => message.role === 'assistant');
+      return {
+        userMessages: messages.filter((message) => message.role === 'user').length,
+        assistantMessages: messages.filter((message) => message.role === 'assistant').length,
+        hasRunId: Boolean(assistant?.runId),
+        runStatus: assistant?.runStatus ?? null,
+        producedFiles: assistant?.producedFiles?.map((file) => file.name) ?? [],
+        hasThinking: Boolean(assistant?.events?.some((event) => event.kind === 'thinking')),
+      };
+    }, { timeout: 15_000 })
+    .toEqual({
+      userMessages: options.expectedUserMessages ?? expect.any(Number),
+      assistantMessages: 1,
+      hasRunId: options.requireRunId ? true : expect.any(Boolean),
+      runStatus: 'succeeded',
+      producedFiles: [DELAYED_FILE],
+      hasThinking: true,
+    });
 }
 
 async function listConversationMessages(

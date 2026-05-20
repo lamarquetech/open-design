@@ -31,6 +31,7 @@ const createConversation = vi.fn();
 const patchConversation = vi.fn();
 const patchProject = vi.fn();
 const saveTabs = vi.fn();
+const writeProjectTextFile = vi.fn();
 
 vi.mock('../../src/i18n', () => ({
   useT: () => ((value: string) => value),
@@ -58,7 +59,7 @@ vi.mock('../../src/providers/registry', () => ({
   fetchSkill: (...args: unknown[]) => fetchSkill(...args),
   patchPreviewCommentStatus: vi.fn(),
   upsertPreviewComment: vi.fn(),
-  writeProjectTextFile: vi.fn(),
+  writeProjectTextFile: (...args: unknown[]) => writeProjectTextFile(...args),
 }));
 
 vi.mock('../../src/providers/project-events', () => ({
@@ -937,5 +938,108 @@ describe('ProjectView daemon cleanup', () => {
         !call[2]?.runId,
     );
     expect(phantomSave).toBeUndefined();
+  });
+
+  it('relinks terminal replay to an existing artifact without writing a duplicate file', async () => {
+    const existingArtifact = {
+      artifactManifest: {
+        entry: 'real-daemon-smoke.html',
+        exports: ['html'],
+        kind: 'html',
+        metadata: {
+          artifactType: 'text/html',
+          identifier: 'real-daemon-smoke',
+          inferred: false,
+        },
+        renderer: 'html',
+        title: 'Real Daemon Smoke',
+        version: 1,
+      },
+      kind: 'html',
+      mime: 'text/html',
+      mtime: 100,
+      name: 'real-daemon-smoke.html',
+      size: 100,
+    };
+
+    listConversations.mockResolvedValue([{ id: 'conv-1', title: 'Conversation' }]);
+    listMessages.mockResolvedValue([
+      {
+        id: 'msg-replay',
+        role: 'assistant',
+        content: '',
+        createdAt: Date.now(),
+        runId: 'run-replay',
+        runStatus: 'succeeded',
+        producedFiles: [],
+      },
+    ]);
+    fetchPreviewComments.mockResolvedValue([]);
+    loadTabs.mockResolvedValue({ tabs: [], activeTabId: null });
+    fetchProjectFiles.mockResolvedValue([existingArtifact]);
+    fetchProjectDesignSystemPackageAudit.mockResolvedValue(null);
+    fetchLiveArtifacts.mockResolvedValue([]);
+    fetchSkill.mockResolvedValue(null);
+    fetchDesignSystem.mockResolvedValue(null);
+    getTemplate.mockResolvedValue(null);
+    fetchChatRunStatus.mockResolvedValue({
+      id: 'run-replay',
+      status: 'succeeded',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      exitCode: 0,
+      signal: null,
+    });
+    listActiveChatRuns.mockResolvedValue([]);
+    reattachDaemonRun.mockImplementation(async (options: {
+      handlers: {
+        onDelta: (delta: string) => void;
+        onDone: () => void;
+      };
+    }) => {
+      options.handlers.onDelta(
+        '<artifact identifier="real-daemon-smoke" type="text/html" title="Real Daemon Smoke"><h1>Real Daemon Smoke</h1></artifact>',
+      );
+      options.handlers.onDone();
+    });
+
+    render(
+      <ProjectView
+        project={{ id: 'project-1', name: 'Project', skillId: null, designSystemId: null } as never}
+        routeFileName={null}
+        config={{ mode: 'daemon', agentId: 'agent-1', notifications: undefined, agentModels: {} } as never}
+        agents={[{ id: 'agent-1', name: 'OpenCode', models: [] } as never]}
+        skills={[]}
+        designTemplates={[]}
+        designSystems={[]}
+        daemonLive
+        onModeChange={() => {}}
+        onAgentChange={() => {}}
+        onAgentModelChange={() => {}}
+        onRefreshAgents={() => {}}
+        onOpenSettings={() => {}}
+        onBack={() => {}}
+        onClearPendingPrompt={() => {}}
+        onTouchProject={() => {}}
+        onProjectChange={() => {}}
+        onProjectsRefresh={() => {}}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(saveMessage.mock.calls).toEqual(
+        expect.arrayContaining([
+          expect.arrayContaining([
+            'project-1',
+            'conv-1',
+            expect.objectContaining({
+              id: 'msg-replay',
+              producedFiles: [existingArtifact],
+            }),
+          ]),
+        ]),
+      );
+    });
+    expect(writeProjectTextFile).not.toHaveBeenCalled();
   });
 });

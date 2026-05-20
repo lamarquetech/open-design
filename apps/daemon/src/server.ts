@@ -10566,6 +10566,11 @@ export async function startServer({
       }
     }
     const run = design.runs.create(meta);
+    try {
+      pinAssistantMessageOnRunCreate(db, run);
+    } catch (err) {
+      console.warn('[runs] message create pin failed', err);
+    }
     // Capture clientType for downstream telemetry (Langfuse uses it on
     // run-completed metadata; PostHog gets it via the request header
     // bridge). Prefer the explicit `x-od-client` header from desktop /
