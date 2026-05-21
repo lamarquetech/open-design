@@ -13344,7 +13344,7 @@ button.ghost.mcp-copy-btn:hover:not(:disabled) {
 }
 .prose-block .md-code-actions {
   position: absolute;
-  top: 7px;
+  top: 8px;
   right: 7px;
   z-index: 1;
   display: inline-flex;
@@ -13395,7 +13395,7 @@ button.ghost.mcp-copy-btn:hover:not(:disabled) {
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 38px 12px 10px;
+  padding: 12px 66px 12px 12px;
   margin: 0;
   overflow-x: auto;
   font-size: 12px;
