@@ -56,7 +56,12 @@ export {
   signDesktopImportToken,
   verifyDesktopImportToken,
 } from './desktop-auth.js';
-import { findSkillById, listSkills, splitDerivedSkillId } from './skills.js';
+import {
+  findSkillById,
+  listSkills,
+  resolveSkillId,
+  splitDerivedSkillId,
+} from './skills.js';
 import { validateLinkedDirs } from './linked-dirs.js';
 import { installFromTarget, uninstallById, sanitizeRepoName } from './library-install.js';
 import { buildWindowsFolderDialogCommand, parseFolderDialogStdout } from './native-folder-dialog.js';
@@ -8307,11 +8312,15 @@ export async function startServer({
     // Per-turn skills picked via the composer's @-mention popover. They
     // never persist on the project — we just append their bodies after the
     // primary skill so the agent sees one combined block this turn.
+    const effectiveCanonicalSkillId =
+      typeof effectiveSkillId === 'string' && effectiveSkillId
+        ? resolveSkillId(effectiveSkillId)
+        : null;
     const adHocSkillIds = Array.isArray(skillIds)
       ? skillIds
           .map((s) => (typeof s === 'string' ? s.trim() : ''))
           .filter(Boolean)
-          .filter((id) => id !== effectiveSkillId)
+          .filter((id) => resolveSkillId(id) !== effectiveCanonicalSkillId)
       : [];
 
     let skillBody;
@@ -8340,14 +8349,19 @@ export async function startServer({
       }
     }
     if (adHocSkillIds.length > 0) {
-      const seen = new Set(effectiveSkillId ? [effectiveSkillId] : []);
+      const seen = new Set(
+        effectiveCanonicalSkillId ? [String(effectiveCanonicalSkillId)] : [],
+      );
       const blocks = [];
       const baseBody = skillBody && skillBody.trim().length > 0 ? skillBody : '';
       for (const id of adHocSkillIds) {
-        if (seen.has(id)) continue;
-        seen.add(id);
+        const canonicalId = resolveSkillId(id);
+        if (typeof canonicalId !== 'string' || canonicalId.length === 0) continue;
+        if (seen.has(canonicalId)) continue;
+        seen.add(canonicalId);
         const extra = findSkillById(allSkills, id);
         if (!extra) continue;
+        if (!skillMode) skillMode = extra.mode;
         if (Array.isArray(extra.craftRequires)) {
           for (const craft of extra.craftRequires) {
             if (!skillCraftRequires.includes(craft)) skillCraftRequires.push(craft);

@@ -222,6 +222,90 @@ process.stdin.on('end', () => {
     );
   });
 
+  it('propagates the composed skill mode for ad-hoc-only deck skills', async () => {
+    await withFakeAgent(
+      'opencode',
+      `
+let prompt = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+  prompt += chunk;
+});
+process.stdin.on('end', () => {
+  const checks = [
+    prompt.includes('## Composed skill — open-design-landing-deck') ? 'has-deck-skill-header' : 'missing-deck-skill-header',
+    prompt.includes('# Slide deck — fixed framework (this is non-negotiable for deck mode)') ? 'has-deck-framework' : 'missing-deck-framework',
+  ];
+  console.log(JSON.stringify({ type: 'step_start' }));
+  console.log(JSON.stringify({ type: 'text', part: { text: checks.join('\\n') } }));
+  console.log(JSON.stringify({ type: 'step_finish', part: { tokens: { input: 1, output: 1 } } }));
+  process.exit(0);
+});
+`,
+      async () => {
+        const response = await fetch(`${baseUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId: 'opencode',
+            message: 'build an editorial brand deck',
+            skillIds: ['open-design-landing-deck'],
+          }),
+        });
+        const body = await response.text();
+
+        expect(response.ok).toBe(true);
+        expect(body).toContain('has-deck-skill-header');
+        expect(body).toContain('has-deck-framework');
+        expect(body).not.toContain('missing-deck-skill-header');
+        expect(body).not.toContain('missing-deck-framework');
+      },
+    );
+  });
+
+  it('canonicalizes aliased skill ids before deduping composed skills', async () => {
+    await withFakeAgent(
+      'opencode',
+      `
+let prompt = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+  prompt += chunk;
+});
+process.stdin.on('end', () => {
+  const hasDuplicateComposedAlias = prompt.includes('## Composed skill — open-design-landing');
+  const checks = [
+    hasDuplicateComposedAlias ? 'duplicate-alias-composed-skill' : 'deduped-alias-composed-skill',
+    prompt.includes('# open-design-landing') ? 'has-base-alias-skill-body' : 'missing-base-alias-skill-body',
+  ];
+  console.log(JSON.stringify({ type: 'step_start' }));
+  console.log(JSON.stringify({ type: 'text', part: { text: checks.join('\\n') } }));
+  console.log(JSON.stringify({ type: 'step_finish', part: { tokens: { input: 1, output: 1 } } }));
+  process.exit(0);
+});
+`,
+      async () => {
+        const response = await fetch(`${baseUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId: 'opencode',
+            message: 'build the Open Design landing page',
+            skillId: 'editorial-collage',
+            skillIds: ['open-design-landing'],
+          }),
+        });
+        const body = await response.text();
+
+        expect(response.ok).toBe(true);
+        expect(body).toContain('deduped-alias-composed-skill');
+        expect(body).toContain('has-base-alias-skill-body');
+        expect(body).not.toContain('duplicate-alias-composed-skill');
+        expect(body).not.toContain('missing-base-alias-skill-body');
+      },
+    );
+  });
+
   it('classifies Cursor Agent authentication stderr as a typed run error', async () => {
     await withFakeAgent(
       'cursor-agent',
