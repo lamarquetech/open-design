@@ -1489,9 +1489,10 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
                 type="button"
                 className="composer-send stop"
                 onClick={onStop}
+                aria-label={t('chat.stop')}
+                title={t('chat.stop')}
               >
                 <Icon name="stop" size={13} />
-                <span>{t('chat.stop')}</span>
               </button>
             ) : (
               <button
