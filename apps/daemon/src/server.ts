@@ -8477,7 +8477,14 @@ export async function startServer({
       return res.status(403).json({ error: 'cross-origin request rejected' });
     }
     try {
-      const locale = typeof req.body?.locale === 'string' ? req.body.locale : undefined;
+      const locale = (() => {
+        if (!req.body || typeof req.body !== 'object' || !('locale' in req.body)) return undefined;
+        const locale = (req.body as { locale?: unknown }).locale;
+        if (locale === null || typeof locale === 'string') return locale;
+        const error = new Error('orbit run locale must be a string or null') as Error & { status: number };
+        error.status = 400;
+        throw error;
+      })();
       res.json(await orbitService.start('manual', { locale }));
     } catch (err) {
       const status = typeof err === 'object' && err && 'status' in err && typeof err.status === 'number'

@@ -347,6 +347,46 @@ describe('OrbitService', () => {
     }
   });
 
+  it('reuses a default-locale run for an explicit English request', async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), 'orbit-test-'));
+    try {
+      const service = new OrbitService(dataDir);
+      let resolveCompletion!: (value: {
+        agentRunId: string;
+        status: 'succeeded';
+      }) => void;
+      const completion = new Promise<{
+        agentRunId: string;
+        status: 'succeeded';
+      }>((resolve) => {
+        resolveCompletion = resolve;
+      });
+      const runHandler = vi.fn(async () => ({
+        projectId: 'project-1',
+        agentRunId: 'agent-1',
+        completion,
+      }));
+      service.setRunHandler(runHandler);
+
+      const activeRun = await service.start('scheduled');
+      await expect(service.start('manual', { locale: 'en' })).resolves.toEqual(activeRun);
+      expect(runHandler).toHaveBeenCalledTimes(1);
+
+      resolveCompletion({
+        agentRunId: 'agent-1',
+        status: 'succeeded',
+      });
+      await completion;
+      let status = await service.status();
+      for (let attempt = 0; attempt < 10 && status.running; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        status = await service.status();
+      }
+    } finally {
+      await rm(dataDir, { recursive: true, force: true });
+    }
+  });
+
   it('preserves the default template when config omits the field', async () => {
     const dataDir = await mkdtemp(path.join(os.tmpdir(), 'orbit-test-'));
     try {

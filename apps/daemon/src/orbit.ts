@@ -132,6 +132,14 @@ function normalizeOrbitRunOptions(options?: OrbitRunOptions): NormalizedOrbitRun
   return { locale: normalizeOrbitLocale(options?.locale) };
 }
 
+function canonicalOrbitRunLocale(locale: string | null): string | null {
+  return locale === 'en' ? null : locale;
+}
+
+function orbitRunLocalesMatch(activeLocale: string | null, requestedLocale: string | null): boolean {
+  return canonicalOrbitRunLocale(activeLocale) === canonicalOrbitRunLocale(requestedLocale);
+}
+
 function orbitLocaleLabel(locale: string): string {
   return SUPPORTED_ORBIT_LOCALE_LABELS[locale as SupportedOrbitLocale] ?? locale;
 }
@@ -507,7 +515,7 @@ export class OrbitService {
     const runOptions = normalizeOrbitRunOptions(options);
     const locale = runOptions.locale;
     const localeWasRequested = locale !== null;
-    if ((this.inflight || this.starting) && localeWasRequested && this.activeLocale !== locale) {
+    if ((this.inflight || this.starting) && localeWasRequested && !orbitRunLocalesMatch(this.activeLocale, locale)) {
       throw orbitLocaleConflictError(this.activeLocale, locale);
     }
     if (this.inflight && this.inflightProjectId && this.inflightAgentRunId) {

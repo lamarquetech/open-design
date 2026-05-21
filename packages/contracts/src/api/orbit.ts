@@ -22,5 +22,5 @@ export interface OrbitStatusResponse {
 }
 
 export interface OrbitRunRequest {
-  locale?: string;
+  locale?: string | null;
 }
