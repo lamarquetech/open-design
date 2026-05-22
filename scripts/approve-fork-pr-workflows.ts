@@ -42,9 +42,15 @@ type WorkflowRunsResponse = {
 };
 
 const dryRun = process.env.DRY_RUN === "true";
-const pendingRunPollIntervalMs = 3_000;
-const pendingRunFirstAppearanceTimeoutMs = 4 * 60_000;
-const pendingRunSettlingPollAttempts = 3;
+const defaultPendingRunPollIntervalMs = 3_000;
+const defaultPendingRunFirstAppearanceTimeoutMs = 4 * 60_000;
+const defaultPendingRunSettlingPollAttempts = 3;
+
+type PendingRunPollingConfig = {
+  pollIntervalMs?: number;
+  firstAppearanceTimeoutMs?: number;
+  settlingPollAttempts?: number;
+};
 
 // Workflow allowlisting is the security boundary: fork PRs may touch broader
 // source paths, but this script only approves low-privilege pull_request
@@ -185,9 +191,13 @@ export async function waitForPendingApprovalRuns(
   loadRuns: () => Promise<WorkflowRun[]>,
   sleep: (ms: number) => Promise<void> = delay,
   now: () => number = Date.now,
+  config: PendingRunPollingConfig = {},
 ): Promise<WorkflowRun[]> {
+  const pollIntervalMs = config.pollIntervalMs ?? defaultPendingRunPollIntervalMs;
+  const firstAppearanceTimeoutMs = config.firstAppearanceTimeoutMs ?? defaultPendingRunFirstAppearanceTimeoutMs;
+  const settlingPollAttempts = config.settlingPollAttempts ?? defaultPendingRunSettlingPollAttempts;
   const pendingRuns = new Map<number, WorkflowRun>();
-  const firstAppearanceDeadline = now() + pendingRunFirstAppearanceTimeoutMs;
+  const firstAppearanceDeadline = now() + firstAppearanceTimeoutMs;
 
   const collectRuns = async (): Promise<void> => {
     for (const run of await loadRuns()) {
@@ -198,12 +208,12 @@ export async function waitForPendingApprovalRuns(
   await collectRuns();
 
   while (pendingRuns.size === 0 && now() < firstAppearanceDeadline) {
-    await sleep(pendingRunPollIntervalMs);
+    await sleep(pollIntervalMs);
     await collectRuns();
   }
 
-  for (let attempt = 0; pendingRuns.size > 0 && attempt < pendingRunSettlingPollAttempts; attempt += 1) {
-    await sleep(pendingRunPollIntervalMs);
+  for (let attempt = 0; pendingRuns.size > 0 && attempt < settlingPollAttempts; attempt += 1) {
+    await sleep(pollIntervalMs);
     await collectRuns();
   }
 

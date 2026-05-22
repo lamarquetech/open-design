@@ -380,10 +380,47 @@ test("waitForPendingApprovalRuns keeps polling until the first run appears, even
       now += ms;
     },
     () => now,
+    {
+      firstAppearanceTimeoutMs: 15_000,
+      settlingPollAttempts: 2,
+    },
   );
 
   assert.deepEqual(pendingRuns, [run]);
-  assert.deepEqual(sleeps, [3000, 3000, 3000, 3000, 3000, 3000, 3000]);
+  assert.deepEqual(sleeps, [3000, 3000, 3000, 3000, 3000, 3000]);
+});
+
+test("waitForPendingApprovalRuns accepts a configurable longer polling budget before the first run appears", async () => {
+  const run = {
+    id: 26273463769,
+    name: "CI",
+    event: "pull_request",
+    status: "completed",
+    conclusion: "action_required",
+    head_sha: "734076155c44e569304856590019cea54506fdab",
+    path: ".github/workflows/ci.yml@main",
+    pull_requests: [],
+  };
+
+  const batches = [[], [], [], [], [], [run]];
+  const sleeps: number[] = [];
+  let now = 0;
+
+  const pendingRuns = await waitForPendingApprovalRuns(
+    async () => batches.shift() ?? [run],
+    async (ms) => {
+      sleeps.push(ms);
+      now += ms;
+    },
+    () => now,
+    {
+      firstAppearanceTimeoutMs: 18_000,
+      settlingPollAttempts: 1,
+    },
+  );
+
+  assert.deepEqual(pendingRuns, [run]);
+  assert.deepEqual(sleeps, [3000, 3000, 3000, 3000, 3000, 3000]);
 });
 
 test("waitForPendingApprovalRuns stops after the first-appearance timeout when no runs arrive", async () => {
@@ -401,10 +438,13 @@ test("waitForPendingApprovalRuns stops after the first-appearance timeout when n
       now += ms;
     },
     () => now,
+    {
+      firstAppearanceTimeoutMs: 9_000,
+    },
   );
 
   assert.deepEqual(pendingRuns, []);
-  assert.equal(calls, 81);
-  assert.equal(sleeps.length, 80);
-  assert.equal(now, 240000);
+  assert.equal(calls, 4);
+  assert.equal(sleeps.length, 3);
+  assert.equal(now, 9_000);
 });
