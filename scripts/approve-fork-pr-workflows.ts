@@ -139,7 +139,7 @@ export function isPendingApprovalRun(run: WorkflowRun, pull: PullRequest): boole
   return (
     run.head_sha === pull.head.sha &&
     run.event === "pull_request" &&
-    run.conclusion === "action_required" &&
+    (run.status === "action_required" || run.conclusion === "action_required") &&
     allowedWorkflowPaths.has(normalizeWorkflowPath(run.path))
   );
 }

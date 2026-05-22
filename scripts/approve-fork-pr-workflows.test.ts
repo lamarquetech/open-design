@@ -39,7 +39,37 @@ test("isPendingApprovalRun matches approval-gated fork PR runs from GitHub's cap
   assert.equal(isPendingApprovalRun(run, pull), true);
 });
 
-test("isPendingApprovalRun rejects runs outside the allowlist or without action_required conclusion", () => {
+test("isPendingApprovalRun also accepts action_required runs reported only in status", () => {
+  const pull = {
+    number: 2683,
+    state: "open",
+    changed_files: 1,
+    head: {
+      sha: "734076155c44e569304856590019cea54506fdab",
+      repo: { full_name: "someone/open-design" },
+    },
+    base: {
+      ref: "main",
+      sha: "4cd93a5c7a7b0db1961c854e55f8e0e6b1b45542",
+      repo: { full_name: "nexu-io/open-design" },
+    },
+  };
+
+  const run = {
+    id: 26273463770,
+    name: "CI",
+    event: "pull_request",
+    status: "action_required",
+    conclusion: null,
+    head_sha: "734076155c44e569304856590019cea54506fdab",
+    path: ".github/workflows/ci.yml@main",
+    pull_requests: [],
+  };
+
+  assert.equal(isPendingApprovalRun(run, pull), true);
+});
+
+test("isPendingApprovalRun rejects runs outside the allowlist or without action_required state", () => {
   const pull = {
     number: 2683,
     state: "open",

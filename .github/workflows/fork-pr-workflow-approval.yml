@@ -34,7 +34,7 @@ jobs:
   approve:
     if: github.repository == 'nexu-io/open-design'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Checkout trusted base code
