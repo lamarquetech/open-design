@@ -132,6 +132,40 @@ jobs:
           echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
           echo "capture_outcome=$capture_outcome" >> "$GITHUB_OUTPUT"
 
+      - name: Validate live PR state for trusted checkout
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: trusted-pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.manifest.outputs.pr_number }}
+          ARTIFACT_HEAD_SHA: ${{ steps.manifest.outputs.head_sha }}
+          ARTIFACT_BASE_SHA: ${{ steps.manifest.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefOid,baseRefOid)"
+          pr_state="$(jq -r '.state' <<< "$pr_json")"
+          pr_is_draft="$(jq -r '.isDraft' <<< "$pr_json")"
+          current_head="$(jq -r '.headRefOid' <<< "$pr_json")"
+          current_base="$(jq -r '.baseRefOid' <<< "$pr_json")"
+          if [ "$pr_state" != "OPEN" ]; then
+            echo "Refusing trusted checkout for PR $PR_NUMBER because state is $pr_state." >&2
+            exit 1
+          fi
+          if [ "$pr_is_draft" != "false" ]; then
+            echo "Refusing trusted checkout for PR $PR_NUMBER because it is draft." >&2
+            exit 1
+          fi
+          if [ "$current_head" != "$ARTIFACT_HEAD_SHA" ]; then
+            echo "Artifact head_sha ($ARTIFACT_HEAD_SHA) does not match live PR head ($current_head)." >&2
+            exit 1
+          fi
+          if [ "$current_base" != "$ARTIFACT_BASE_SHA" ]; then
+            echo "Artifact base_sha ($ARTIFACT_BASE_SHA) does not match live PR base ($current_base)." >&2
+            exit 1
+          fi
+          echo "base_sha=$current_base" >> "$GITHUB_OUTPUT"
+
       - name: Checkout trusted base revision
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@v6.0.2
@@ -139,7 +173,7 @@ jobs:
           clean: false
           fetch-depth: 0
           repository: ${{ github.repository }}
-          ref: ${{ steps.manifest.outputs.base_sha }}
+          ref: ${{ steps.trusted-pr.outputs.base_sha }}
 
       - name: Resolve pnpm store path
         id: pnpm-store
