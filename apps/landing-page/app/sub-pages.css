@@ -1523,20 +1523,35 @@ body.sub-page {
 .detail-share-platform-btn {
   display: inline-flex;
   align-items: center;
-  padding: 6px 14px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--ink);
-  border-radius: 999px;
-  font-family: var(--sans);
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 50%;
   color: var(--ink);
   text-decoration: none;
   background: transparent;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
 }
 .detail-share-platform-btn:hover {
   background: var(--ink);
   color: var(--paper);
+  transform: translateY(-1px);
+}
+.detail-share-platform-btn svg {
+  display: block;
+}
+/* Visually-hidden helper for screen-reader-only platform names. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* The trigger button itself in `.detail-actions` */
