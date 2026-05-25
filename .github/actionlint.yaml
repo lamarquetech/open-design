@@ -3,3 +3,6 @@ paths:
     ignore:
       - 'shellcheck reported issue in this script: SC2016:.+'
       - 'shellcheck reported issue in this script: SC2086:.+'
+self-hosted-runner:
+  labels:
+    - agent-pr-explore

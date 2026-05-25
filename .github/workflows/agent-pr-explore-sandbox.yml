@@ -1,0 +1,121 @@
+name: agent-pr-explore-sandbox
+
+# Trusted-orchestrator workflow for PR exploration. It intentionally uses
+# pull_request_target so the workflow file and runner script come from the
+# protected base branch. The PR head is never checked out on the host runner;
+# the sandbox script fetches and executes it inside Docker.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "apps/web/**"
+      - "apps/landing-page/**"
+      - "design-templates/open-design-landing/**"
+      - "skills/**"
+      - "design-systems/**"
+      - "craft/**"
+      - "templates/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "e2e/**"
+      - ".github/workflows/agent-pr-explore-sandbox.yml"
+      - ".github/scripts/agent-pr-explore-sandbox.sh"
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to explore.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: agent-pr-explore-sandbox-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  sandbox:
+    name: Sandbox PR runtime
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft }}
+    runs-on: [self-hosted, agent-pr-explore]
+    environment: agent-pr-explore
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout trusted base scripts
+        uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Resolve PR metadata
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$EVENT_PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid PR number: $EVENT_PR_NUMBER"
+            exit 1
+          fi
+
+          state="$(gh pr view "$EVENT_PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state --jq '.state')"
+          draft="$(gh pr view "$EVENT_PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')"
+          head_sha="$(gh pr view "$EVENT_PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq '.headRefOid')"
+          head_repo="$(gh pr view "$EVENT_PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRepositoryOwner,headRepository --jq '.headRepositoryOwner.login + "/" + .headRepository.name')"
+          base_repo="$GITHUB_REPOSITORY"
+          base_sha="$(gh pr view "$EVENT_PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json baseRefOid --jq '.baseRefOid')"
+
+          if [ "$state" != "OPEN" ]; then
+            echo "::error::Refusing to explore PR $EVENT_PR_NUMBER because state is $state."
+            exit 1
+          fi
+          if [ "$draft" != "false" ]; then
+            echo "::error::Refusing to explore draft PR $EVENT_PR_NUMBER."
+            exit 1
+          fi
+          if [ "$base_repo" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Unexpected base repo $base_repo."
+            exit 1
+          fi
+          if ! [[ "$head_sha" =~ ^[0-9a-f]{40}$ && "$base_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Invalid PR SHA metadata."
+            exit 1
+          fi
+
+          {
+            echo "number=$EVENT_PR_NUMBER"
+            echo "head_sha=$head_sha"
+            echo "head_repo=$head_repo"
+            echo "base_sha=$base_sha"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run expect against Docker-isolated PR app
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          HEAD_REPO: ${{ steps.pr.outputs.head_repo }}
+          BASE_REPO: ${{ github.repository }}
+          BASE_SHA: ${{ steps.pr.outputs.base_sha }}
+          OD_SANDBOX_CPUS: "4"
+          OD_SANDBOX_MEMORY: "8g"
+          OD_SANDBOX_READY_TIMEOUT_SECONDS: "900"
+          OD_EXPECT_TIMEOUT_SECONDS: "1200"
+          OD_EXPECT_CONTEXT_MAX_BYTES: "120000"
+        run: .github/scripts/agent-pr-explore-sandbox.sh
+
+      - name: Upload sandbox artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: agent-pr-explore-sandbox-${{ steps.pr.outputs.number }}-${{ steps.pr.outputs.head_sha }}
+          path: ${{ runner.temp }}/agent-pr-explore-sandbox/artifacts/
+          if-no-files-found: warn
+          retention-days: 7
