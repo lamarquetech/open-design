@@ -128,6 +128,54 @@ describe('visual report PNG sizing', () => {
       await rm(workDir, { recursive: true, force: true });
     }
   });
+
+  test('malformed screenshots without a baseline fail before any PR upload', async () => {
+    const workDir = await mkdtemp(path.join(tmpdir(), 'visual-report-'));
+    try {
+      const outputDir = path.join(workDir, 'output');
+      const badPath = path.join(workDir, 'visual-bad.png');
+      await writeFile(badPath, Buffer.from('not-a-png'));
+
+      const uploadedKeys: string[] = [];
+      const r2 = {
+        bucket: 'visual-bucket',
+        publicOrigin: 'https://example.invalid',
+        client: {} as never,
+      };
+
+      const result = await compareCase(
+        {
+          r2,
+          prNumber: '12',
+          runId: '34',
+          headSha: 'b'.repeat(40),
+          visualCase: { name: 'visual-bad', path: badPath },
+          candidateShas: ['c'.repeat(40)],
+          outputDir,
+        },
+        {
+          putFile: async (_r2: unknown, key: string) => {
+            uploadedKeys.push(key);
+          },
+          findBaseline: async () => null,
+          downloadObject: async () => {
+            throw new Error('download should not run');
+          },
+          writeDiffPng: async () => {
+            throw new Error('diff should not run');
+          },
+        },
+      );
+
+      expect(result).toMatchObject({
+        name: 'visual-bad',
+        status: 'failed',
+      });
+      expect(uploadedKeys).toEqual([]);
+    } finally {
+      await rm(workDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('visual diff box extraction', () => {

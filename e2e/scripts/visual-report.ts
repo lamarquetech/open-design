@@ -176,6 +176,17 @@ export async function compareCase(input: {
   const downloadObjectOp = ops.downloadObject ?? downloadObject;
   const writeDiffPngOp = ops.writeDiffPng ?? writeDiffPng;
   const prKey = prImageKey(prNumber, runId, 'pr', visualCase.name);
+
+  try {
+    await validatePngFile(visualCase.path);
+  } catch (error) {
+    return {
+      name: visualCase.name,
+      status: 'failed',
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+
   await putFileOp(r2, prKey, visualCase.path);
 
   const baseline = await findBaselineOp(r2, visualCase.name, candidateShas);
@@ -193,7 +204,6 @@ export async function compareCase(input: {
 
   let diffPixels: number;
   try {
-    await validatePngFile(visualCase.path);
     diffPixels = await writeDiffPngOp(mainPath, visualCase.path, diffPath);
   } catch (error) {
     return {
