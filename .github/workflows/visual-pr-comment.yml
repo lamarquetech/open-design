@@ -27,20 +27,21 @@ concurrency:
 jobs:
   comment:
     name: Publish PR visual diff comment
-    # Fork PR capture artifacts are untrusted. Publish comments/R2 reports for
-    # same-repository PRs automatically; fork captures require maintainer
-    # workflow_dispatch with a specific capture run id and PR number.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    # Fork PR capture artifacts are untrusted. Always validate the live PR state
+    # and only execute trusted base-repository code before publishing comments
+    # or reports.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
-      - name: Checkout
+      - name: Checkout same-repository workflow head
+        if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository }}
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
-          repository: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name || github.repository }}
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.0.8
@@ -57,7 +58,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id || inputs.capture_run_id }}
-          path: visual-artifact
+          path: ${{ runner.temp }}/visual-artifact
           merge-multiple: true
           github-token: ${{ github.token }}
 
@@ -71,13 +72,14 @@ jobs:
           WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id || inputs.capture_run_id }}
         run: |
           set -euo pipefail
-          manifest="visual-artifact/visual-report/manifest.json"
+          artifact_dir="$RUNNER_TEMP/visual-artifact"
+          manifest="$artifact_dir/visual-report/manifest.json"
           if [ ! -f "$manifest" ]; then
-            manifest="visual-artifact/manifest.json"
+            manifest="$artifact_dir/manifest.json"
           fi
           if [ ! -f "$manifest" ]; then
             echo "Capture manifest not found" >&2
-            find visual-artifact -maxdepth 4 -type f >&2
+            find "$artifact_dir" -maxdepth 4 -type f >&2
             exit 1
           fi
           manifest_pr_number="$(jq -r '.pr_number' "$manifest")"
@@ -135,7 +137,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Validate live PR state for trusted checkout
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_repository.full_name != github.repository }}
         id: trusted-pr
         shell: bash
         env:
@@ -145,9 +147,10 @@ jobs:
           ARTIFACT_BASE_SHA: ${{ steps.manifest.outputs.base_sha }}
         run: |
           set -euo pipefail
-          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefOid,baseRefOid)"
+          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefOid,baseRefOid,isCrossRepository)"
           pr_state="$(jq -r '.state' <<< "$pr_json")"
           pr_is_draft="$(jq -r '.isDraft' <<< "$pr_json")"
+          pr_is_cross_repository="$(jq -r '.isCrossRepository' <<< "$pr_json")"
           current_head="$(jq -r '.headRefOid' <<< "$pr_json")"
           current_base="$(jq -r '.baseRefOid' <<< "$pr_json")"
           if [ "$pr_state" != "OPEN" ]; then
@@ -166,13 +169,15 @@ jobs:
             echo "Artifact base_sha ($ARTIFACT_BASE_SHA) does not match live PR base ($current_base)." >&2
             exit 1
           fi
-          echo "base_sha=$current_base" >> "$GITHUB_OUTPUT"
+          {
+            echo "base_sha=$current_base"
+            echo "is_cross_repository=$pr_is_cross_repository"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Checkout trusted base revision
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_repository.full_name != github.repository }}
         uses: actions/checkout@v6.0.2
         with:
-          clean: false
           fetch-depth: 0
           repository: ${{ github.repository }}
           ref: ${{ steps.trusted-pr.outputs.base_sha }}
@@ -200,9 +205,21 @@ jobs:
           ARTIFACT_BASE_SHA: ${{ steps.manifest.outputs.base_sha }}
         run: |
           set -euo pipefail
-          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid,baseRefOid)"
+          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefOid,baseRefOid)"
+          pr_state="$(jq -r '.state' <<< "$pr_json")"
+          pr_is_draft="$(jq -r '.isDraft' <<< "$pr_json")"
           current_head="$(jq -r '.headRefOid' <<< "$pr_json")"
           current_base="$(jq -r '.baseRefOid' <<< "$pr_json")"
+          if [ "$pr_state" != "OPEN" ]; then
+            echo "Skipping visual report for PR $PR_NUMBER because state is $pr_state."
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$pr_is_draft" != "false" ]; then
+            echo "Skipping visual report for PR $PR_NUMBER because it is draft."
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if [ "$current_head" != "$ARTIFACT_HEAD_SHA" ]; then
             echo "Skipping stale visual artifact for $ARTIFACT_HEAD_SHA; current PR head is $current_head."
             echo "stale=true" >> "$GITHUB_OUTPUT"
@@ -235,7 +252,7 @@ jobs:
             --head-sha "${{ steps.manifest.outputs.head_sha }}" \
             --base-sha "${{ steps.manifest.outputs.base_sha }}" \
             --capture-outcome "${{ steps.manifest.outputs.capture_outcome }}" \
-            --screenshots ../visual-artifact/visual-screenshots \
+            --screenshots "$RUNNER_TEMP/visual-artifact/visual-screenshots" \
             --comment-out ui/reports/visual-report/comment.md \
             --manifest-out ui/reports/visual-report/report-manifest.json
 
@@ -248,9 +265,19 @@ jobs:
           ARTIFACT_BASE_SHA: ${{ steps.manifest.outputs.base_sha }}
         run: |
           set -euo pipefail
-          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid,baseRefOid)"
+          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefOid,baseRefOid)"
+          pr_state="$(jq -r '.state' <<< "$pr_json")"
+          pr_is_draft="$(jq -r '.isDraft' <<< "$pr_json")"
           current_head="$(jq -r '.headRefOid' <<< "$pr_json")"
           current_base="$(jq -r '.baseRefOid' <<< "$pr_json")"
+          if [ "$pr_state" != "OPEN" ]; then
+            echo "Skipping visual comment for PR $PR_NUMBER because state is $pr_state."
+            exit 0
+          fi
+          if [ "$pr_is_draft" != "false" ]; then
+            echo "Skipping visual comment for PR $PR_NUMBER because it is draft."
+            exit 0
+          fi
           if [ "$current_head" != "$ARTIFACT_HEAD_SHA" ]; then
             echo "Skipping stale visual comment for $ARTIFACT_HEAD_SHA; current PR head is $current_head."
             exit 0

@@ -165,6 +165,7 @@ async function compareCase(input: {
 }): Promise<ComparedCase> {
   const { r2, prNumber, runId, headSha, visualCase, candidateShas, outputDir } = input;
   const prKey = prImageKey(prNumber, runId, 'pr', visualCase.name);
+  await validatePngFile(visualCase.path);
   await putFile(r2, prKey, visualCase.path);
 
   const baseline = await findBaseline(r2, visualCase.name, candidateShas);
@@ -423,6 +424,11 @@ function setPixel(png: PNG, x: number, y: number, color: readonly [number, numbe
   png.data[index + 1] = color[1];
   png.data[index + 2] = color[2];
   png.data[index + 3] = color[3];
+}
+
+async function validatePngFile(filePath: string): Promise<void> {
+  const png = PNG.sync.read(await readFile(filePath));
+  assertPngSize(png, filePath);
 }
 
 function assertPngSize(png: PNG, filePath: string): void {

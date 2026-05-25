@@ -110,6 +110,23 @@ test("isPendingApprovalRun rejects runs outside the allowlist or without action_
   assert.equal(
     isPendingApprovalRun(
       {
+        id: 26273463771,
+        name: "Visual PR Capture",
+        event: "pull_request",
+        status: "completed",
+        conclusion: "action_required",
+        head_sha: "734076155c44e569304856590019cea54506fdab",
+        path: ".github/workflows/visual-pr-capture.yml@main",
+        pull_requests: [],
+      },
+      pull,
+    ),
+    false,
+  );
+
+  assert.equal(
+    isPendingApprovalRun(
+      {
         id: 26273463770,
         name: "Visual PR Comment",
         event: "pull_request",

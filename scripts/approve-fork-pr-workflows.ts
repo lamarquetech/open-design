@@ -74,7 +74,6 @@ function pendingRunSetSignature(runs: WorkflowRun[]): string {
 // this set.
 const allowedWorkflowPaths = new Set([
   ".github/workflows/ci.yml",
-  ".github/workflows/visual-pr-capture.yml",
   ".github/workflows/visual-pr-verify.yml",
 ]);
 
