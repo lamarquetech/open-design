@@ -90,6 +90,44 @@ describe('visual report PNG sizing', () => {
       await rm(workDir, { recursive: true, force: true });
     }
   });
+
+  test('required R2 failures propagate instead of returning a failed case', async () => {
+    const workDir = await mkdtemp(path.join(tmpdir(), 'visual-report-'));
+    try {
+      const outputDir = path.join(workDir, 'output');
+      const goodPath = path.join(workDir, 'visual-good.png');
+      const pngBuffer = PNG.sync.write(createFilledPng(2, 2));
+      await writeFile(goodPath, pngBuffer);
+
+      const r2 = {
+        bucket: 'visual-bucket',
+        publicOrigin: 'https://example.invalid',
+        client: {} as never,
+      };
+
+      await expect(compareCase(
+        {
+          r2,
+          prNumber: '12',
+          runId: '34',
+          headSha: 'b'.repeat(40),
+          visualCase: { name: 'visual-good', path: goodPath },
+          candidateShas: ['c'.repeat(40)],
+          outputDir,
+        },
+        {
+          putFile: async () => {},
+          findBaseline: async () => ({ sha: 'a'.repeat(40), key: 'baseline/visual-good.png', behindBy: 0 }),
+          downloadObject: async () => {
+            throw new Error('download failed');
+          },
+          writeDiffPng: async () => 0,
+        },
+      )).rejects.toThrow('download failed');
+    } finally {
+      await rm(workDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('visual diff box extraction', () => {

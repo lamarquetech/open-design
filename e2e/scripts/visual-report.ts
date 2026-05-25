@@ -176,41 +176,25 @@ export async function compareCase(input: {
   const downloadObjectOp = ops.downloadObject ?? downloadObject;
   const writeDiffPngOp = ops.writeDiffPng ?? writeDiffPng;
   const prKey = prImageKey(prNumber, runId, 'pr', visualCase.name);
-  let baseline: BaselineLookup | null = null;
-  const mainPath = path.join(outputDir, 'main', `${visualCase.name}.png`);
-  const diffPath = path.join(outputDir, 'diff', `${visualCase.name}.png`);
+  await putFileOp(r2, prKey, visualCase.path);
 
-  try {
-    await validatePngFile(visualCase.path);
-    await putFileOp(r2, prKey, visualCase.path);
-
-    baseline = await findBaselineOp(r2, visualCase.name, candidateShas);
-    if (baseline == null) {
-      return {
-        name: visualCase.name,
-        status: 'missing-baseline',
-        prUrl: publicUrl(r2, prKey),
-      };
-    }
-
-    await downloadObjectOp(r2, baseline.key, mainPath);
-
-    const diffPixels = await writeDiffPngOp(mainPath, visualCase.path, diffPath);
-    const mainKey = prImageKey(prNumber, runId, 'main', visualCase.name);
-    const diffKey = prImageKey(prNumber, runId, 'diff', visualCase.name);
-    await putFileOp(r2, mainKey, mainPath);
-    await putFileOp(r2, diffKey, diffPath);
-
+  const baseline = await findBaselineOp(r2, visualCase.name, candidateShas);
+  if (baseline == null) {
     return {
       name: visualCase.name,
-      status: diffPixels > 0 ? 'changed' : 'unchanged',
-      diffPixels,
-      baselineSha: baseline.sha,
-      baselineBehindBy: baseline.behindBy,
-      mainUrl: publicUrl(r2, mainKey),
+      status: 'missing-baseline',
       prUrl: publicUrl(r2, prKey),
-      diffUrl: publicUrl(r2, diffKey),
     };
+  }
+
+  const mainPath = path.join(outputDir, 'main', `${visualCase.name}.png`);
+  const diffPath = path.join(outputDir, 'diff', `${visualCase.name}.png`);
+  await downloadObjectOp(r2, baseline.key, mainPath);
+
+  let diffPixels: number;
+  try {
+    await validatePngFile(visualCase.path);
+    diffPixels = await writeDiffPngOp(mainPath, visualCase.path, diffPath);
   } catch (error) {
     return {
       name: visualCase.name,
@@ -226,6 +210,22 @@ export async function compareCase(input: {
       error: error instanceof Error ? error.message : String(error),
     };
   }
+
+  const mainKey = prImageKey(prNumber, runId, 'main', visualCase.name);
+  const diffKey = prImageKey(prNumber, runId, 'diff', visualCase.name);
+  await putFileOp(r2, mainKey, mainPath);
+  await putFileOp(r2, diffKey, diffPath);
+
+  return {
+    name: visualCase.name,
+    status: diffPixels > 0 ? 'changed' : 'unchanged',
+    diffPixels,
+    baselineSha: baseline.sha,
+    baselineBehindBy: baseline.behindBy,
+    mainUrl: publicUrl(r2, mainKey),
+    prUrl: publicUrl(r2, prKey),
+    diffUrl: publicUrl(r2, diffKey),
+  };
 }
 
 async function writeDiffPng(mainPath: string, prPath: string, diffPath: string): Promise<number> {
