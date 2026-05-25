@@ -1082,6 +1082,15 @@ export function ProjectView({
     return nextFiles;
   }, [refreshLiveArtifacts, refreshProjectFiles]);
 
+  useEffect(() => {
+    if (!tabsLoadedRef.current) return;
+    if (routeFileName) return;
+    if (openTabsState.active || openTabsState.tabs.length > 0) return;
+    const primaryFile = selectPrimaryProjectFile(projectFiles);
+    if (!primaryFile) return;
+    persistTabsState({ tabs: [primaryFile.name], active: primaryFile.name });
+  }, [openTabsState.active, openTabsState.tabs.length, persistTabsState, projectFiles, routeFileName]);
+
   const requestOpenFile = useCallback((name: string) => {
     if (!name) return;
     setOpenRequest({ name, nonce: Date.now() });
@@ -4446,6 +4455,68 @@ export function findExistingArtifactProjectFile(
   }
 
   return currentRunFiles.find((file) => file.name === candidateFileName) ?? null;
+}
+
+export function selectPrimaryProjectFile(files: ProjectFile[]): ProjectFile | null {
+  const candidates = files
+    .filter((file) => !isProcessArtifactFile(file.name))
+    .map((file) => ({ file, rank: primaryProjectFileRank(file) }))
+    .filter((candidate) => Number.isFinite(candidate.rank));
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => a.rank - b.rank || b.file.mtime - a.file.mtime);
+  return candidates[0]?.file ?? null;
+}
+
+function isProcessArtifactFile(name: string): boolean {
+  const base = name.split('/').pop()?.toLowerCase() ?? name.toLowerCase();
+  return (
+    base === 'critique.json'
+    || base.endsWith('.log')
+    || base.endsWith('.meta.json')
+    || base.endsWith('.artifact.json')
+    || base.endsWith('.map')
+  );
+}
+
+function primaryProjectFileRank(file: ProjectFile): number {
+  if (manifestDeclaresPrimary(file)) return 0;
+  if (file.artifactManifest && file.artifactManifest.metadata?.inferred !== true) return 1;
+  if (file.kind === 'html') return 2;
+  if (file.kind === 'image') return 3;
+  if (file.kind === 'video') return 4;
+  if (file.kind === 'sketch') return 5;
+  if (file.kind === 'pdf') return 6;
+  if (file.kind === 'presentation') return 7;
+  if (file.kind === 'document') return 8;
+  if (file.kind === 'spreadsheet') return 9;
+  return Number.POSITIVE_INFINITY;
+}
+
+function manifestDeclaresPrimary(file: ProjectFile): boolean {
+  const manifest = file.artifactManifest;
+  if (!manifest) return false;
+  if (primaryValueTargetsFile(manifest.primary, file.name)) return true;
+  const metadata = manifest.metadata;
+  if (!metadata || typeof metadata !== 'object') return false;
+  if (primaryValueTargetsFile(metadata.primary, file.name)) return true;
+  const outputs = metadata.outputs;
+  if (outputs && typeof outputs === 'object' && !Array.isArray(outputs)) {
+    return primaryValueTargetsFile(
+      (outputs as { primary?: unknown }).primary,
+      file.name,
+    );
+  }
+  return false;
+}
+
+function primaryValueTargetsFile(value: unknown, fileName: string): boolean {
+  if (value === true) return true;
+  if (typeof value !== 'string') return false;
+  return normalizeProjectFileName(value) === normalizeProjectFileName(fileName);
+}
+
+function normalizeProjectFileName(value: string): string {
+  return value.replace(/\\/g, '/').replace(/^\.?\//, '').toLowerCase();
 }
 
 function assistantAgentDisplayName(
