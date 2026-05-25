@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-25T07:34:41.000Z",
+  "generatedAt": "2026-05-25T07:41:18.667Z",
   "contributors": {
     "1115052994": {
       "lastAnnouncedTier": "spark",
@@ -1695,6 +1695,13 @@
       "lastCheckedAt": "2026-05-25T07:29:50.205Z",
       "scoreVersion": "weighted-v1",
       "lastAnnouncedAt": "2026-05-25T07:29:50.205Z"
+    },
+    "lurongjiang": {
+      "lastAnnouncedTier": "spark",
+      "lastKnownScore": 5,
+      "lastCheckedAt": "2026-05-25T07:41:18.666Z",
+      "scoreVersion": "weighted-v1",
+      "lastAnnouncedAt": "2026-05-25T07:41:18.666Z"
     }
   }
 }
