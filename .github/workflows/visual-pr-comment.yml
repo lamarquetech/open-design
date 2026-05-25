@@ -69,6 +69,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           WORKFLOW_PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || inputs.pr_number }}
           WORKFLOW_HEAD_SHA: ${{ github.event.workflow_run.head_sha || '' }}
+          WORKFLOW_HEAD_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name || '' }}
+          WORKFLOW_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch || '' }}
           WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id || inputs.capture_run_id }}
         run: |
           set -euo pipefail
@@ -118,13 +120,40 @@ jobs:
             echo "Invalid manifest capture_outcome: $capture_outcome" >&2
             exit 1
           fi
+          source_head_sha="$WORKFLOW_HEAD_SHA"
+          source_head_repository="$WORKFLOW_HEAD_REPOSITORY"
+          source_head_branch="$WORKFLOW_HEAD_BRANCH"
+          if [ -z "$source_head_sha" ] || [ -z "$source_head_repository" ] || [ -z "$source_head_branch" ]; then
+            run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$WORKFLOW_RUN_ID")"
+            if [ -z "$source_head_sha" ]; then
+              source_head_sha="$(jq -r '.head_sha // empty' <<< "$run_json")"
+            fi
+            if [ -z "$source_head_repository" ]; then
+              source_head_repository="$(jq -r '.head_repository.full_name // empty' <<< "$run_json")"
+            fi
+            if [ -z "$source_head_branch" ]; then
+              source_head_branch="$(jq -r '.head_branch // empty' <<< "$run_json")"
+            fi
+          fi
           manifest_head="$(jq -r '.head_sha' "$manifest")"
           if ! [[ "$manifest_head" =~ ^[0-9a-f]{40}$ ]]; then
             echo "Invalid manifest head_sha: $manifest_head" >&2
             exit 1
           fi
-          if [ -n "$WORKFLOW_HEAD_SHA" ] && [ "$manifest_head" != "$WORKFLOW_HEAD_SHA" ]; then
-            echo "Artifact manifest head_sha ($manifest_head) does not match workflow_run head_sha ($WORKFLOW_HEAD_SHA)." >&2
+          if ! [[ "$source_head_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Unable to resolve trusted workflow_run head_sha for run $WORKFLOW_RUN_ID." >&2
+            exit 1
+          fi
+          if [ "$manifest_head" != "$source_head_sha" ]; then
+            echo "Artifact manifest head_sha ($manifest_head) does not match workflow_run head_sha ($source_head_sha)." >&2
+            exit 1
+          fi
+          if [ -z "$source_head_repository" ]; then
+            echo "Unable to resolve trusted workflow_run head repository for run $WORKFLOW_RUN_ID." >&2
+            exit 1
+          fi
+          if [ -z "$source_head_branch" ]; then
+            echo "Unable to resolve trusted workflow_run head branch for run $WORKFLOW_RUN_ID." >&2
             exit 1
           fi
           {
@@ -134,6 +163,8 @@ jobs:
             echo "base_sha=$base_sha"
             echo "run_id=$run_id"
             echo "capture_outcome=$capture_outcome"
+            echo "source_head_repository=$source_head_repository"
+            echo "source_head_branch=$source_head_branch"
           } >> "$GITHUB_OUTPUT"
 
       - name: Validate live PR state for trusted checkout
@@ -145,15 +176,19 @@ jobs:
           PR_NUMBER: ${{ steps.manifest.outputs.pr_number }}
           ARTIFACT_HEAD_SHA: ${{ steps.manifest.outputs.head_sha }}
           ARTIFACT_BASE_SHA: ${{ steps.manifest.outputs.base_sha }}
+          SOURCE_HEAD_REPOSITORY: ${{ steps.manifest.outputs.source_head_repository }}
+          SOURCE_HEAD_BRANCH: ${{ steps.manifest.outputs.source_head_branch }}
         run: |
           set -euo pipefail
-          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefOid,baseRefOid,isCrossRepository)"
+          pr_json="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
           pr_state="$(jq -r '.state' <<< "$pr_json")"
-          pr_is_draft="$(jq -r '.isDraft' <<< "$pr_json")"
-          pr_is_cross_repository="$(jq -r '.isCrossRepository' <<< "$pr_json")"
-          current_head="$(jq -r '.headRefOid' <<< "$pr_json")"
-          current_base="$(jq -r '.baseRefOid' <<< "$pr_json")"
-          if [ "$pr_state" != "OPEN" ]; then
+          pr_is_draft="$(jq -r '.draft' <<< "$pr_json")"
+          pr_is_cross_repository="$(jq -r '(.head.repo.full_name // "") != (.base.repo.full_name // "")' <<< "$pr_json")"
+          current_head="$(jq -r '.head.sha' <<< "$pr_json")"
+          current_base="$(jq -r '.base.sha' <<< "$pr_json")"
+          current_head_repository="$(jq -r '.head.repo.full_name // empty' <<< "$pr_json")"
+          current_head_branch="$(jq -r '.head.ref // empty' <<< "$pr_json")"
+          if [ "$pr_state" != "open" ]; then
             echo "Refusing trusted checkout for PR $PR_NUMBER because state is $pr_state." >&2
             exit 1
           fi
@@ -167,6 +202,14 @@ jobs:
           fi
           if [ "$current_base" != "$ARTIFACT_BASE_SHA" ]; then
             echo "Artifact base_sha ($ARTIFACT_BASE_SHA) does not match live PR base ($current_base)." >&2
+            exit 1
+          fi
+          if [ "$current_head_repository" != "$SOURCE_HEAD_REPOSITORY" ]; then
+            echo "Artifact PR head repository ($current_head_repository) does not match trusted workflow_run head repository ($SOURCE_HEAD_REPOSITORY)." >&2
+            exit 1
+          fi
+          if [ "$current_head_branch" != "$SOURCE_HEAD_BRANCH" ]; then
+            echo "Artifact PR head branch ($current_head_branch) does not match trusted workflow_run head branch ($SOURCE_HEAD_BRANCH)." >&2
             exit 1
           fi
           {

@@ -54,6 +54,13 @@ type ComparedCase = {
   error?: string;
 };
 
+type CompareCaseOps = {
+  putFile?: (r2: R2Config, key: string, filePath: string) => Promise<void>;
+  findBaseline?: (r2: R2Config, caseName: string, candidateShas: string[]) => Promise<BaselineLookup | null>;
+  downloadObject?: (r2: R2Config, key: string, outputPath: string) => Promise<void>;
+  writeDiffPng?: (mainPath: string, prPath: string, diffPath: string) => Promise<number>;
+};
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const e2eDir = path.resolve(scriptDir, '..');
 
@@ -154,7 +161,7 @@ async function comparePr(options: ParsedArgs): Promise<void> {
   console.log(`Wrote visual report for ${compared.length} cases to ${commentOut}.`);
 }
 
-async function compareCase(input: {
+export async function compareCase(input: {
   r2: R2Config;
   prNumber: string;
   runId: string;
@@ -162,31 +169,37 @@ async function compareCase(input: {
   visualCase: VisualCase;
   candidateShas: string[];
   outputDir: string;
-}): Promise<ComparedCase> {
+}, ops: CompareCaseOps = {}): Promise<ComparedCase> {
   const { r2, prNumber, runId, headSha, visualCase, candidateShas, outputDir } = input;
+  const putFileOp = ops.putFile ?? putFile;
+  const findBaselineOp = ops.findBaseline ?? findBaseline;
+  const downloadObjectOp = ops.downloadObject ?? downloadObject;
+  const writeDiffPngOp = ops.writeDiffPng ?? writeDiffPng;
   const prKey = prImageKey(prNumber, runId, 'pr', visualCase.name);
-  await validatePngFile(visualCase.path);
-  await putFile(r2, prKey, visualCase.path);
-
-  const baseline = await findBaseline(r2, visualCase.name, candidateShas);
-  if (baseline == null) {
-    return {
-      name: visualCase.name,
-      status: 'missing-baseline',
-      prUrl: publicUrl(r2, prKey),
-    };
-  }
-
+  let baseline: BaselineLookup | null = null;
   const mainPath = path.join(outputDir, 'main', `${visualCase.name}.png`);
   const diffPath = path.join(outputDir, 'diff', `${visualCase.name}.png`);
-  await downloadObject(r2, baseline.key, mainPath);
 
   try {
-    const diffPixels = await writeDiffPng(mainPath, visualCase.path, diffPath);
+    await validatePngFile(visualCase.path);
+    await putFileOp(r2, prKey, visualCase.path);
+
+    baseline = await findBaselineOp(r2, visualCase.name, candidateShas);
+    if (baseline == null) {
+      return {
+        name: visualCase.name,
+        status: 'missing-baseline',
+        prUrl: publicUrl(r2, prKey),
+      };
+    }
+
+    await downloadObjectOp(r2, baseline.key, mainPath);
+
+    const diffPixels = await writeDiffPngOp(mainPath, visualCase.path, diffPath);
     const mainKey = prImageKey(prNumber, runId, 'main', visualCase.name);
     const diffKey = prImageKey(prNumber, runId, 'diff', visualCase.name);
-    await putFile(r2, mainKey, mainPath);
-    await putFile(r2, diffKey, diffPath);
+    await putFileOp(r2, mainKey, mainPath);
+    await putFileOp(r2, diffKey, diffPath);
 
     return {
       name: visualCase.name,
@@ -202,9 +215,13 @@ async function compareCase(input: {
     return {
       name: visualCase.name,
       status: 'failed',
-      baselineSha: baseline.sha,
-      baselineBehindBy: baseline.behindBy,
-      mainUrl: publicUrl(r2, baseline.key),
+      ...(baseline == null
+        ? {}
+        : {
+            baselineSha: baseline.sha,
+            baselineBehindBy: baseline.behindBy,
+            mainUrl: publicUrl(r2, baseline.key),
+          }),
       prUrl: publicUrl(r2, prKey),
       error: error instanceof Error ? error.message : String(error),
     };
