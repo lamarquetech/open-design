@@ -20,6 +20,14 @@ import {
   RU_PROMPT_TEMPLATE_TAGS,
   RU_SKILL_COPY,
 } from './content.ru';
+import {
+  PT_BR_DESIGN_SYSTEM_CATEGORIES,
+  PT_BR_DESIGN_SYSTEM_SUMMARIES,
+  PT_BR_PROMPT_TEMPLATE_CATEGORIES,
+  PT_BR_PROMPT_TEMPLATE_COPY,
+  PT_BR_PROMPT_TEMPLATE_TAGS,
+  PT_BR_SKILL_COPY,
+} from './content.pt-BR';
 
 type LocalizedSkillCopy = { description?: string; examplePrompt?: string };
 type LocalizedPromptTemplateCopy = Partial<Pick<PromptTemplateSummary, 'summary' | 'title'>>;
@@ -981,6 +989,14 @@ const LOCALIZED_CONTENT: Partial<Record<Locale, LocalizedContentBundle>> = {
     promptTemplateTags: FR_PROMPT_TEMPLATE_TAGS,
     promptTemplateCopy: FR_PROMPT_TEMPLATE_COPY,
   },
+  'pt-BR': {
+    skillCopy: PT_BR_SKILL_COPY,
+    designSystemSummaries: PT_BR_DESIGN_SYSTEM_SUMMARIES,
+    designSystemCategories: PT_BR_DESIGN_SYSTEM_CATEGORIES,
+    promptTemplateCategories: PT_BR_PROMPT_TEMPLATE_CATEGORIES,
+    promptTemplateTags: PT_BR_PROMPT_TEMPLATE_TAGS,
+    promptTemplateCopy: PT_BR_PROMPT_TEMPLATE_COPY,
+  },
 };
 
 function buildLocalizedContentIds(content: LocalizedContentBundle): LocalizedContentIds {
@@ -998,11 +1014,13 @@ export const LOCALIZED_CONTENT_IDS = {
   de: buildLocalizedContentIds(LOCALIZED_CONTENT.de!),
   ru: buildLocalizedContentIds(LOCALIZED_CONTENT.ru!),
   fr: buildLocalizedContentIds(LOCALIZED_CONTENT.fr!),
-} satisfies Record<'de' | 'ru' | 'fr', LocalizedContentIds>;
+  'pt-BR': buildLocalizedContentIds(LOCALIZED_CONTENT['pt-BR']!),
+} satisfies Record<'de' | 'ru' | 'fr' | 'pt-BR', LocalizedContentIds>;
 
 export const GERMAN_CONTENT_IDS = LOCALIZED_CONTENT_IDS.de;
 export const RUSSIAN_CONTENT_IDS = LOCALIZED_CONTENT_IDS.ru;
 export const FRENCH_CONTENT_IDS = LOCALIZED_CONTENT_IDS.fr;
+export const PORTUGUESE_BRAZIL_CONTENT_IDS = LOCALIZED_CONTENT_IDS['pt-BR'];
 
 function getLocalizedContent(locale: Locale): LocalizedContentBundle | undefined {
   return LOCALIZED_CONTENT[locale];
