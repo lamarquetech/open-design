@@ -2174,14 +2174,14 @@ function DesignSystemPackageCard({ system }: { system: DesignSystemDetail }) {
       {manifest ? (
         <div className="ds-package-files">
           <PackageFileGroup
-            title="Preview"
+            title="Pré-visualização"
             files={previewPages.map((page) => ({
               path: page.path ?? '',
               meta: [page.title, page.role].filter(Boolean).join(' · '),
             }))}
           />
           <PackageFileGroup
-            title="Source evidence"
+            title="Evidência da fonte"
             files={[
               sourceFiles?.scanned ? { path: sourceFiles.scanned, meta: 'Scanned file inventory' } : null,
               sourceFiles?.evidence ? { path: sourceFiles.evidence, meta: 'Evidence notes' } : null,

@@ -128,8 +128,8 @@ export function NewProjectModal({
             className="new-project-modal__close"
             onClick={onClose}
             disabled={creating}
-            aria-label="Close"
-            title="Close (Esc)"
+            aria-label="Fechar"
+            title="Fechar (Esc)"
           >
             <Icon name="close" size={14} />
           </button>

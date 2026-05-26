@@ -198,13 +198,13 @@ const DEFAULT_SOURCE_FORM: SourceIngestionForm = {
 };
 
 function scheduleStatusLabel(routine: Routine): string {
-  if (!routine.enabled) return 'Paused';
+  if (!routine.enabled) return 'Pausado';
   return describeScheduleSummary(routine.schedule);
 }
 
 function nextRunLabel(routine: Routine): string {
-  if (!routine.enabled) return 'Manual only';
-  if (!routine.nextRunAt) return 'Scheduled';
+  if (!routine.enabled) return 'Somente manual';
+  if (!routine.nextRunAt) return 'Agendado';
   const date = new Date(routine.nextRunAt);
   return `Next ${date.toLocaleString(undefined, {
     dateStyle: 'medium',
@@ -221,7 +221,7 @@ function formatAutomationTimestamp(ts: number | null | undefined): string {
 }
 
 function formatRunDuration(run: RoutineRun): string {
-  if (!run.completedAt) return 'In progress';
+  if (!run.completedAt) return 'Em andamento';
   const seconds = Math.max(1, Math.round((run.completedAt - run.startedAt) / 1000));
   if (seconds < 60) return `${seconds}s`;
   const minutes = Math.floor(seconds / 60);
@@ -230,11 +230,11 @@ function formatRunDuration(run: RoutineRun): string {
 }
 
 function statusLabel(status: RoutineRun['status']): string {
-  if (status === 'succeeded') return 'Succeeded';
-  if (status === 'failed') return 'Failed';
-  if (status === 'running') return 'Running';
-  if (status === 'queued') return 'Queued';
-  return 'Canceled';
+  if (status === 'succeeded') return 'Bem-sucedido';
+  if (status === 'failed') return 'Falhou';
+  if (status === 'running') return 'Executando';
+  if (status === 'queued') return 'Na fila';
+  return 'Cancelado';
 }
 
 function StatusPill({ status }: { status: RoutineRun['status'] }) {
@@ -510,7 +510,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
 
   const submitSourceIngestion = async () => {
     if (!sourceForm.bodyMarkdown.trim()) {
-      setError('Paste source content before ingesting it.');
+      setError('Cole o conteúdo da origem antes de ingeri-lo.');
       return;
     }
     setIngestingSource(true);
@@ -644,7 +644,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm('Delete this automation? Past runs and their projects are kept.'))
+    if (!window.confirm('Excluir esta automação? Execuções anteriores e seus projetos serão mantidos.'))
       return;
     setBusyId(id);
     try {
@@ -666,9 +666,9 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
     <section className="automations-view" aria-labelledby="automations-title" data-testid="tasks-view">
       <header className="automations-hero">
         <div className="automations-hero__copy">
-          <span className="automations-hero__eyebrow">Scheduled agent sessions</span>
+          <span className="automations-hero__eyebrow">Sessões de agente agendadas</span>
           <h1 id="automations-title" className="automations-hero__title">
-            Automations
+            Automações
           </h1>
           <p className="automations-hero__lede">
             Plan recurring conversations for project work, Orbit digests, and live artifacts.
@@ -676,9 +676,9 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
         </div>
         <div className="automations-hero__actions">
           <div className="automations-metrics" aria-label="Automation summary">
-            <Metric label="Active" value={activeCount} />
-            <Metric label="Paused" value={pausedCount} />
-            <Metric label="Templates" value={templates.length} />
+            <Metric label="Ativas" value={activeCount} />
+            <Metric label="Pausadas" value={pausedCount} />
+            <Metric label="Modelos" value={templates.length} />
           </div>
           <button
             type="button"
@@ -687,7 +687,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
             data-testid="automations-new"
           >
             <Icon name="plus" size={14} />
-            <span>New automation</span>
+            <span>Nova automação</span>
           </button>
         </div>
       </header>
@@ -700,8 +700,8 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
 
       <section className="automations-saved" aria-label="Your automations">
         <div className="automations-section-head">
-          <h2 className="automations-section__label">Your automations</h2>
-          {loading ? <span className="automations-section__meta">Loading</span> : null}
+          <h2 className="automations-section__label">Suas automações</h2>
+          {loading ? <span className="automations-section__meta">Carregando</span> : null}
         </div>
         {!loading && sortedRoutines.length === 0 ? (
           <button
@@ -713,8 +713,8 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
               <Icon name="plus" size={16} />
             </span>
             <span className="automation-empty__body">
-              <strong>No automations yet</strong>
-              <span>Create one from a template or start with a blank schedule.</span>
+              <strong>Nenhuma automação ainda</strong>
+              <span>Crie uma a partir de um modelo ou comece com um agendamento em branco.</span>
             </span>
           </button>
         ) : null}
@@ -725,7 +725,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
               const targetLabel =
                 r.target.mode === 'reuse'
                   ? projectsById.get(r.target.projectId) ?? r.target.projectId
-                  : 'New project each run';
+                  : 'Novo projeto a cada execução';
               const isExpanded = expandedId === r.id;
               return (
                 <li
@@ -765,7 +765,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                               })
                             }
                           >
-                            Open result
+                            Abrir resultado
                           </button>
                         </span>
                       ) : null}
@@ -777,7 +777,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                       className="automation-row__btn"
                       onClick={() => runNow(r.id)}
                       disabled={isBusy}
-                      title="Run now and open the conversation"
+                      title="Executar agora e abrir a conversa"
                     >
                       <Icon name="play" size={12} />
                       <span>Run</span>
@@ -792,7 +792,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                       aria-expanded={isExpanded}
                     >
                       <Icon name="history" size={12} />
-                      <span>{isExpanded ? 'Hide history' : 'History'}</span>
+                      <span>{isExpanded ? 'Ocultar histórico' : 'Histórico'}</span>
                     </button>
                     <button
                       type="button"
@@ -801,7 +801,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                       disabled={isBusy}
                     >
                       <Icon name="edit" size={12} />
-                      <span>Edit</span>
+                      <span>Editar</span>
                     </button>
                     <button
                       type="button"
@@ -809,15 +809,15 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                       onClick={() => togglePaused(r)}
                       disabled={isBusy}
                     >
-                      {r.enabled ? 'Pause' : 'Resume'}
+                      {r.enabled ? 'Pausar' : 'Retomar'}
                     </button>
                     <button
                       type="button"
                       className="automation-row__btn automation-row__btn--danger"
                       onClick={() => remove(r.id)}
                       disabled={isBusy}
-                      aria-label="Delete automation"
-                      title="Delete this automation"
+                      aria-label="Excluir automação"
+                      title="Excluir esta automação"
                     >
                       <Icon name="trash" size={12} />
                     </button>
@@ -841,7 +841,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
         <section className="automations-saved" aria-label="Automation evolution proposals">
           <div className="automations-section-head">
             <div>
-              <h2 className="automations-section__label">Evolution proposals</h2>
+              <h2 className="automations-section__label">Propostas de evolução</h2>
               <p className="automations-section__sub">
                 Review automation output before it changes memory, skills, or design systems.
               </p>
@@ -885,7 +885,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                       disabled={isBusy}
                     >
                       <Icon name="check" size={12} />
-                      <span>Apply</span>
+                      <span>Aplicar</span>
                     </button>
                     <button
                       type="button"
@@ -893,7 +893,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                       onClick={() => reviewProposal(proposal.id, 'reject')}
                       disabled={isBusy}
                     >
-                      Reject
+                      Rejeitar
                     </button>
                   </div>
                 </li>
@@ -906,7 +906,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
       <section className="automations-ingest" aria-label="Source ingestion">
         <div className="automations-section-head">
           <div>
-            <h2 className="automations-section__label">Ingest source</h2>
+            <h2 className="automations-section__label">Ingerir origem</h2>
             <p className="automations-section__sub">
               Turn connector, repo, artifact, or chat context into reviewable evolution proposals.
             </p>
@@ -916,7 +916,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
         <div className="automation-ingest-panel">
           <div className="automation-ingest-controls">
             <label className="automation-ingest-field">
-              <span>Template</span>
+              <span>Modelo</span>
               <select
                 value={sourceForm.templateId}
                 onChange={(event) => patchSourceForm({ templateId: event.currentTarget.value })}
@@ -932,7 +932,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
               </select>
             </label>
             <label className="automation-ingest-field">
-              <span>Source</span>
+              <span>Origem</span>
               <select
                 value={sourceForm.sourceKind}
                 onChange={(event) =>
@@ -947,7 +947,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
               </select>
             </label>
             <label className="automation-ingest-field">
-              <span>Compression</span>
+              <span>Compressão</span>
               <select
                 value={sourceForm.tokenCompression}
                 onChange={(event) =>
@@ -965,12 +965,12 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
             </label>
             {sourceForm.sourceKind === 'connector' ? (
               <label className="automation-ingest-field">
-                <span>Connector</span>
+                <span>Conector</span>
                 <select
                   value={sourceForm.connectorId}
                   onChange={(event) => patchSourceForm({ connectorId: event.currentTarget.value })}
                 >
-                  <option value="">Any connected source</option>
+                  <option value="">Qualquer origem conectada</option>
                   {connectors.map((connector) => (
                     <option key={connector.id} value={connector.id}>
                       {connector.name}
@@ -983,28 +983,28 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
           </div>
           <div className="automation-ingest-fields">
             <label className="automation-ingest-field">
-              <span>Title</span>
+              <span>Título</span>
               <input
                 value={sourceForm.title}
                 onChange={(event) => patchSourceForm({ title: event.currentTarget.value })}
-                placeholder="Decision, brand notes, workflow pattern..."
+                placeholder="Decisão, notas de marca, padrão de fluxo de trabalho..."
               />
             </label>
             <label className="automation-ingest-field">
-              <span>Source ref</span>
+              <span>Ref da origem</span>
               <input
                 value={sourceForm.sourceRef}
                 onChange={(event) => patchSourceForm({ sourceRef: event.currentTarget.value })}
-                placeholder="URL, repo path, connector event id, artifact id..."
+                placeholder="URL, caminho do repositório, id do evento do conector, id do artefato..."
               />
             </label>
           </div>
           <label className="automation-ingest-field automation-ingest-field--body">
-            <span>Content</span>
+            <span>Conteúdo</span>
             <textarea
               value={sourceForm.bodyMarkdown}
               onChange={(event) => patchSourceForm({ bodyMarkdown: event.currentTarget.value })}
-              placeholder="Paste the content to canonicalize into a source packet and proposals."
+              placeholder="Cole o conteúdo para canonizar em um pacote de origem e propostas."
             />
           </label>
           <div className="automation-ingest-footer">
@@ -1020,7 +1020,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
                 ))}
               </ul>
             ) : (
-              <span className="automation-ingest-empty">No source packets yet.</span>
+              <span className="automation-ingest-empty">Nenhum pacote de origem ainda.</span>
             )}
             <button
               type="button"
@@ -1029,7 +1029,7 @@ export function TasksView({ skills = [], designTemplates = [], connectors = [] }
               disabled={ingestingSource}
             >
               <Icon name="sparkles" size={14} />
-              <span>{ingestingSource ? 'Ingesting' : 'Ingest'}</span>
+              <span>{ingestingSource ? 'Ingerindo' : 'Ingerir'}</span>
             </button>
           </div>
         </div>
@@ -1212,7 +1212,7 @@ function AutomationRunHistory({
                   className="automation-history__open"
                   onClick={() => onCrystallizeRun(routineId, run.id)}
                   disabled={crystallizingRunId === run.id}
-                  title="Draft skill and memory proposals from this run"
+                  title="Rascunho de propostas de habilidades e memória desta execução"
                 >
                   <Icon name="sparkles" size={12} />
                   <span>{crystallizingRunId === run.id ? 'Crystallizing' : 'Crystallize'}</span>

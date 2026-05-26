@@ -112,7 +112,7 @@ function readDesktopHostOsLocale(): string | undefined {
 // Exported so tests can pin the priority chain without spinning up the
 // full I18nProvider.
 export function detectInitialLocale(): Locale {
-  if (typeof window === 'undefined') return 'en';
+  if (typeof window === 'undefined') return 'pt-BR';
   let storedLocale: string | null = null;
   let storedSource: string | null = null;
   try {
@@ -136,7 +136,7 @@ export function detectInitialLocale(): Locale {
   const detected = resolveSystemLocale(
     navigator.languages?.length ? navigator.languages : [navigator.language],
   );
-  return detected ?? 'en';
+  return detected ?? 'pt-BR';
 }
 
 interface I18nContextValue {
@@ -208,10 +208,10 @@ export function useI18n(): I18nContextValue {
     // mounted (e.g. an isolated test). This keeps the API safe to call
     // without requiring every callsite to wrap in a provider.
     return {
-      locale: 'en',
+      locale: 'pt-BR',
       setLocale: () => { },
       t: (key, vars) => {
-        const raw = en[key] ?? key;
+        const raw = ptBR[key] ?? en[key] ?? key;
         if (!vars) return raw;
         return raw.replace(/\{(\w+)\}/g, (_, n: string) => {
           const v = vars[n];

@@ -946,9 +946,9 @@ export function MemorySection({
     return () => clearInterval(id);
   }, []);
 
-	  const connectorExtractions = useMemo(
-	    () => extractions.filter((record) => record.kind === 'connector'),
-	    [extractions],
+          const connectorExtractions = useMemo(
+            () => extractions.filter((record) => record.kind === 'connector'),
+            [extractions],
   );
   const visibleExtractions = useMemo(
     () =>
@@ -991,18 +991,18 @@ export function MemorySection({
       [...selectedConnectorIds].filter((id) =>
         connectedMemoryConnectors.some((connector) => connector.id === id),
       ),
-	    [selectedConnectorIds, connectedMemoryConnectors],
-	  );
-	  const connectedCount = connectedMemoryConnectors.length;
-	  const connectorScanLabel = connectorExtracting
-	    ? 'Scanning apps'
-	    : selectedConnectedConnectorIds.length === 0
-	      ? 'Select apps to scan'
-	      : 'Scan selected apps';
-	  const selectedConnectorSuggestions = useMemo(
-	    () => connectorSuggestions.filter((suggestion) => selectedSuggestionIds.has(suggestion.id)),
-	    [connectorSuggestions, selectedSuggestionIds],
-	  );
+            [selectedConnectorIds, connectedMemoryConnectors],
+          );
+          const connectedCount = connectedMemoryConnectors.length;
+          const connectorScanLabel = connectorExtracting
+            ? 'Scanning apps'
+            : selectedConnectedConnectorIds.length === 0
+              ? 'Select apps to scan'
+              : 'Scan selected apps';
+          const selectedConnectorSuggestions = useMemo(
+            () => connectorSuggestions.filter((suggestion) => selectedSuggestionIds.has(suggestion.id)),
+            [connectorSuggestions, selectedSuggestionIds],
+          );
 
   useEffect(() => {
     setSelectedConnectorIds((prev) => {
@@ -1384,87 +1384,87 @@ export function MemorySection({
     }
   }, [reloadExtractions, t]);
 
-	  const memoryTabs: ReadonlyArray<{
-	    id: MemoryTab;
-	    label: string;
-	    caption: string;
-	    icon: IconName;
-	  }> = [
-	    {
-	      id: 'manual',
-	      label: 'Add manually',
-	      caption: 'Write a fact or preference',
-	      icon: 'edit',
-	    },
-	    {
-	      id: 'chat',
-	      label: 'Learn from chats',
-	      caption: 'Capture useful context',
-	      icon: 'history',
-	    },
-	    {
-	      id: 'connected',
-	      label: 'Import from apps',
-	      caption: 'Scan connected tools',
-	      icon: 'link',
-	    },
-	  ];
+          const memoryTabs: ReadonlyArray<{
+            id: MemoryTab;
+            label: string;
+            caption: string;
+            icon: IconName;
+          }> = [
+            {
+              id: 'manual',
+              label: 'Add manually',
+              caption: 'Write a fact or preference',
+              icon: 'edit',
+            },
+            {
+              id: 'chat',
+              label: 'Learn from chats',
+              caption: 'Capture useful context',
+              icon: 'history',
+            },
+            {
+              id: 'connected',
+              label: 'Import from apps',
+              caption: 'Scan connected tools',
+              icon: 'link',
+            },
+          ];
 
-	  const renderMemoryEntry = (entry: MemoryEntrySummary) => (
-	    <div key={entry.id} className="library-card">
-	      <div className="library-card-info">
-	        <div className="library-card-title-row">
-	          <span className="library-card-name">{entry.name}</span>
-	          <span className="library-card-badge">{entry.id}</span>
-	        </div>
-	        <div className="library-card-desc">
-	          {entry.description || '—'}
-	        </div>
-	      </div>
-	      <button
-	        type="button"
-	        className="library-card-expand"
-	        onClick={() => openPreview(entry.id)}
-	        title={t('settings.memoryPreview')}
-	      >
-	        <Icon
-	          name={previewId === entry.id ? 'chevron-down' : 'chevron-right'}
-	          size={14}
-	        />
-	      </button>
-	      <button
-	        type="button"
-	        className="ghost library-card-action"
-	        onClick={() => startEdit(entry.id)}
-	        title={t('settings.memoryEdit')}
-	      >
-	        <Icon name="edit" size={14} />
-	      </button>
-	      <button
-	        type="button"
-	        className="ghost library-card-action"
-	        onClick={() => onDelete(entry.id)}
-	        title={t('settings.memoryDelete')}
-	      >
-	        <Icon name="close" size={14} />
-	      </button>
-	      {previewId === entry.id && (
-	        <div className="library-preview" style={{ width: '100%' }}>
-	          {previewBody === null ? (
-	            <p>{t('common.loading')}</p>
-	          ) : previewBody ? (
-	            <div className="library-preview-body">
-	              {renderMarkdown(previewBody)}
-	            </div>
-	          ) : (
-	            <p className="hint">—</p>
-	          )}
-	        </div>
-	      )}
-	    </div>
-	  );
+          const renderMemoryEntry = (entry: MemoryEntrySummary) => (
+            <div key={entry.id} className="library-card">
+              <div className="library-card-info">
+                <div className="library-card-title-row">
+                  <span className="library-card-name">{entry.name}</span>
+                  <span className="library-card-badge">{entry.id}</span>
+                </div>
+                <div className="library-card-desc">
+                  {entry.description || '—'}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="library-card-expand"
+                onClick={() => openPreview(entry.id)}
+                title={t('settings.memoryPreview')}
+              >
+                <Icon
+                  name={previewId === entry.id ? 'chevron-down' : 'chevron-right'}
+                  size={14}
+                />
+              </button>
+              <button
+                type="button"
+                className="ghost library-card-action"
+                onClick={() => startEdit(entry.id)}
+                title={t('settings.memoryEdit')}
+              >
+                <Icon name="edit" size={14} />
+              </button>
+              <button
+                type="button"
+                className="ghost library-card-action"
+                onClick={() => onDelete(entry.id)}
+                title={t('settings.memoryDelete')}
+              >
+                <Icon name="close" size={14} />
+              </button>
+              {previewId === entry.id && (
+                <div className="library-preview" style={{ width: '100%' }}>
+                  {previewBody === null ? (
+                    <p>{t('common.loading')}</p>
+                  ) : previewBody ? (
+                    <div className="library-preview-body">
+                      {renderMarkdown(previewBody)}
+                    </div>
+                  ) : (
+                    <p className="hint">—</p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
 
-	  const renderExtractionCard = (record: MemoryExtractionRecord) => {
+          const renderExtractionCard = (record: MemoryExtractionRecord) => {
     const desc = describeRecord(record, t);
     const title = extractionCardTitle(record, t);
     const meta = extractionCardMeta(record, nowClock, t);
@@ -1867,13 +1867,13 @@ export function MemorySection({
             </div>
             <label
               className="memory-source-toggle memory-chat-learning-toggle"
-              title="Learn from chat conversations"
+              title="Aprender a partir de conversas no chat"
             >
-              <span>{chatExtractionEnabled ? 'On' : 'Off'}</span>
+              <span>{chatExtractionEnabled ? 'Ativado' : 'Desativado'}</span>
               <span className="toggle-switch toggle-switch-sm">
                 <input
                   type="checkbox"
-                  aria-label="Learn from chat conversations"
+                  aria-label="Aprender a partir de conversas no chat"
                   checked={chatExtractionEnabled}
                   onChange={(e) => onToggleChatExtraction(e.target.checked)}
                   disabled={!enabled}
@@ -2339,12 +2339,12 @@ export function MemorySection({
                   here automatically.
                 </p>
               </div>
-	            ) : (
-	              <>
-	                {filtered.map(renderMemoryEntry)}
-	                {visibleExtractions.map(renderExtractionCard)}
-	              </>
-	            )}
+                    ) : (
+                      <>
+                        {filtered.map(renderMemoryEntry)}
+                        {visibleExtractions.map(renderExtractionCard)}
+                      </>
+                    )}
           </div>
         </div>
       </section>

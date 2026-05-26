@@ -426,7 +426,7 @@ export function PreviewDrawOverlay({
             style={pillStyle(mode === 'draw')}
             aria-pressed={mode === 'draw'}
           >
-            Draw
+            Desenhar
           </button>
           <button
             type="button"
@@ -435,11 +435,11 @@ export function PreviewDrawOverlay({
             style={pillStyle(mode === 'click')}
             aria-pressed={mode === 'click'}
           >
-            Click
+            Clicar
           </button>
           {hasInk ? (
             <button type="button" onClick={clearInk} disabled={sending} style={ghostStyle}>
-              Clear
+              Limpar
             </button>
           ) : null}
           <input
@@ -447,7 +447,7 @@ export function PreviewDrawOverlay({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             disabled={sending}
-            placeholder="Type anywhere to add a note"
+            placeholder="Digite em qualquer lugar para adicionar uma nota"
             style={{
               background: 'rgba(218, 97, 56, 0.18)',
               border: '1px solid rgba(248, 150, 104, 0.82)',
@@ -475,10 +475,10 @@ export function PreviewDrawOverlay({
             {pendingAction === 'queue' ? (
               <>
                 <Icon name="spinner" size={12} />
-                <span>Queueing...</span>
+                <span>Enfileirando...</span>
               </>
             ) : (
-              'Queue'
+              'Enfileirar'
             )}
           </button>
           <button
@@ -495,10 +495,10 @@ export function PreviewDrawOverlay({
             {pendingAction === 'send' ? (
               <>
                 <Icon name="spinner" size={12} />
-                <span>Sending...</span>
+                <span>Enviando...</span>
               </>
             ) : (
-              'Send'
+              'Enviar'
             )}
           </button>
         </div>

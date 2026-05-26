@@ -2521,7 +2521,7 @@ function renderOAuthResultPage(opts) {
     ? { type: 'mcp-oauth', ok: true, serverId: opts.serverId ?? null }
     : { type: 'mcp-oauth', ok: false, message: opts.message ?? null };
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
 <title>${escapeHtml(title)} — Open Design</title>

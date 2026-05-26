@@ -107,8 +107,8 @@ export function PluginScenarioDetail({
               type="button"
               className="plugin-details-modal__close"
               onClick={onClose}
-              aria-label="Close details"
-              title="Close (Esc)"
+              aria-label="Fechar detalhes"
+              title="Fechar (Esc)"
             >
               <Icon name="close" size={18} />
             </button>

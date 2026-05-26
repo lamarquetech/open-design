@@ -2525,7 +2525,7 @@ function renderComponentPreviewHtml(
     ...defaultUiKitComponentSpecs().filter((spec) => spec.componentName === 'App'),
   ].map((spec) => `  <script type="text/babel" src="components/${spec.fileName}"></script>`).join('\n');
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -2575,7 +2575,7 @@ ${componentScripts}
 
 function renderHtmlDocument(title: string, body: string, palette: GeneratedPalette): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />

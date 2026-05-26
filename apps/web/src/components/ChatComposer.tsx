@@ -2008,7 +2008,7 @@ function ToolsPluginsPanel({
   return (
     <>
       <div className="composer-tools-filter">
-        <div className="composer-tools-segments" role="tablist" aria-label="Plugin source">
+        <div className="composer-tools-segments" role="tablist" aria-label="Fonte do plugin">
           <button
             type="button"
             role="tab"
@@ -2034,8 +2034,8 @@ function ToolsPluginsPanel({
           className="composer-tools-search"
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
-          placeholder="Search plugins…"
-          aria-label="Search plugins"
+          placeholder="Pesquisar plugins..."
+          aria-label="Pesquisar plugins"
         />
       </div>
       {visiblePlugins.length === 0 ? (
@@ -2135,8 +2135,8 @@ function ToolsMcpPanel({
           className="composer-tools-search"
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
-          placeholder="Search MCP…"
-          aria-label="Search MCP servers and templates"
+          placeholder="Pesquisar MCP..."
+          aria-label="Pesquisar servidores e modelos MCP"
         />
       </div>
       {visibleServers.length === 0 ? (
@@ -2226,8 +2226,8 @@ function ToolsSkillsPanel({
           className="composer-tools-search"
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
-          placeholder="Search skills…"
-          aria-label="Search skills"
+          placeholder="Pesquisar habilidades..."
+          aria-label="Pesquisar habilidades"
         />
       </div>
       {visibleSkills.length === 0 ? (
@@ -2523,7 +2523,7 @@ function MentionPopover({
   }, [connectors, files, plugins, skills, mcpServers, tab]);
   return (
     <div className="mention-popover" data-testid="mention-popover">
-      <div className="mention-tabs" role="tablist" aria-label="Mention surfaces">
+      <div className="mention-tabs" role="tablist" aria-label="Superfícies de menção">
         {tabs.map((item) => (
           <button
             key={item.id}

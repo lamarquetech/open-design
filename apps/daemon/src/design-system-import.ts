@@ -647,7 +647,7 @@ ${cssVarLines ? `\n  /* Extracted source variables */\n${cssVarLines}` : ''}
 
 function renderComponentsHtml(name: string): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -848,7 +848,7 @@ function renderAppPreview(name: string, scan: ProjectScan): string {
 
 function renderPreviewPage(title: string, heading: string, body: string): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -501,8 +501,8 @@ export function WorkspaceTabsBar({ route, projects }: Props) {
           type="button"
           className="workspace-tabs-new-btn"
           onClick={createNewTab}
-          title="New tab"
-          aria-label="New tab"
+          title="Nova aba"
+          aria-label="Nova aba"
         >
           <Icon name="plus" size={14} />
         </button>
@@ -510,8 +510,8 @@ export function WorkspaceTabsBar({ route, projects }: Props) {
           type="button"
           className={`workspace-tabs-icon-btn${tabsMenuOpen ? ' is-active' : ''}`}
           onClick={() => setTabsMenuOpen((open) => !open)}
-          title="Search tabs"
-          aria-label="Search tabs"
+          title="Pesquisar abas"
+          aria-label="Pesquisar abas"
           aria-haspopup="dialog"
           aria-expanded={tabsMenuOpen}
         >
@@ -522,7 +522,7 @@ export function WorkspaceTabsBar({ route, projects }: Props) {
               <div
                 className="workspace-tabs-popover"
                 role="dialog"
-                aria-label="Search tabs"
+                aria-label="Pesquisar abas"
                 ref={popoverRef}
               >
                 <div className="workspace-tabs-search">
@@ -531,15 +531,15 @@ export function WorkspaceTabsBar({ route, projects }: Props) {
                     ref={searchInputRef}
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search tabs"
-                    aria-label="Search tabs"
+                    placeholder="Pesquisar abas"
+                    aria-label="Pesquisar abas"
                   />
                 </div>
                 <div className="workspace-tabs-popover__section">
-                  <span>Open tabs</span>
+                  <span>Abas abertas</span>
                   <span>{state.tabs.length}</span>
                 </div>
-                <div className="workspace-tabs-list" role="listbox" aria-label="Open tabs">
+                <div className="workspace-tabs-list" role="listbox" aria-label="Abas abertas">
                   {filteredTabs.length > 0 ? (
                     filteredTabs.map((display) => {
                       const active = display.id === state.activeTabId;
@@ -576,7 +576,7 @@ export function WorkspaceTabsBar({ route, projects }: Props) {
                       );
                     })
                   ) : (
-                    <div className="workspace-tabs-empty">No tabs found</div>
+                    <div className="workspace-tabs-empty">Nenhuma aba encontrada</div>
                   )}
                 </div>
               </div>,

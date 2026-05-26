@@ -557,7 +557,7 @@ export function buildSandboxedPreviewDocument(
   const safeTitle = escapeHtmlAttribute(title || 'Preview');
   const sandbox = opts?.allowModals ? 'allow-scripts allow-modals' : 'allow-scripts';
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />

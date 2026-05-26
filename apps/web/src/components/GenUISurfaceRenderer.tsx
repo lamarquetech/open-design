@@ -71,7 +71,7 @@ export function GenUISurfaceRenderer(props: Props) {
             onClick={() => submit(true)}
             data-testid="genui-confirm"
           >
-            Continue
+          Continuar
           </button>
           <button
             type="button"
@@ -80,7 +80,7 @@ export function GenUISurfaceRenderer(props: Props) {
             onClick={() => submit(false)}
             data-testid="genui-cancel"
           >
-            Cancel
+            Cancelar
           </button>
         </div>
         {error ? <div className="genui-surface__error">{error}</div> : null}
@@ -181,7 +181,7 @@ export function GenUISurfaceRenderer(props: Props) {
     return (
       <div className="genui-surface genui-surface--oauth" role="dialog" aria-label={surface.id}>
         <div className="genui-surface__prompt">
-          {surface.prompt ?? `Authorize ${surface.oauth?.connectorId ?? surface.oauth?.mcpServerId ?? 'the connector'}`}
+          {surface.prompt ?? `Autorizar ${surface.oauth?.connectorId ?? surface.oauth?.mcpServerId ?? 'o conector'}`}
         </div>
         <div className="genui-surface__hint">
           {surface.oauth?.route === 'connector'
@@ -206,7 +206,7 @@ export function GenUISurfaceRenderer(props: Props) {
             })}
             data-testid="genui-authorize"
           >
-            Authorize
+          Autorizar
           </button>
           {props.onSkip ? (
             <button
@@ -215,7 +215,7 @@ export function GenUISurfaceRenderer(props: Props) {
               disabled={submitting}
               onClick={props.onSkip}
             >
-              Skip
+              Pular
             </button>
           ) : null}
         </div>
@@ -352,7 +352,7 @@ function DiffReviewChoiceSurface(props: {
           onClick={() => void accept()}
           data-testid="genui-diff-accept"
         >
-          Accept all
+          Aceitar tudo
         </button>
         <button
           type="button"
@@ -361,7 +361,7 @@ function DiffReviewChoiceSurface(props: {
           onClick={() => void reject()}
           data-testid="genui-diff-reject"
         >
-          Reject all
+          Rejeitar tudo
         </button>
         <button
           type="button"
@@ -370,7 +370,7 @@ function DiffReviewChoiceSurface(props: {
           onClick={() => setMode('partial')}
           data-testid="genui-diff-partial"
         >
-          Partial…
+          Parcial...
         </button>
         {props.onSkip ? (
           <button
@@ -379,7 +379,7 @@ function DiffReviewChoiceSurface(props: {
             disabled={props.disabled}
             onClick={props.onSkip}
           >
-            Skip
+            Pular
           </button>
         ) : null}
       </div>
@@ -421,13 +421,13 @@ function DiffReviewChoiceSurface(props: {
             onClick={() => void submitPartial().catch(() => { /* surfaced via parent error */ })}
             data-testid="genui-diff-partial-submit"
           >
-            Submit partial decision
+            Enviar decisão parcial
           </button>
         </div>
       ) : null}
       <textarea
         className="genui-surface__textarea genui-surface__reason"
-        placeholder="Notes for the patch author (optional)"
+        placeholder="Observações para o autor do patch (opcional)"
         rows={2}
         value={reason}
         onChange={(e) => setReason(e.target.value)}
@@ -477,7 +477,7 @@ function GenericChoiceSurface(props: {
             disabled={props.disabled}
             onClick={props.onSkip}
           >
-            Skip
+            Pular
           </button>
         ) : null}
       </div>
@@ -721,7 +721,7 @@ function JsonSchemaFormSurface(props: {
           disabled={props.disabled}
           data-testid="genui-form-submit"
         >
-          Submit
+          Enviar
         </button>
         {props.onSkip ? (
           <button
@@ -730,7 +730,7 @@ function JsonSchemaFormSurface(props: {
             disabled={props.disabled}
             onClick={props.onSkip}
           >
-            Skip
+            Pular
           </button>
         ) : null}
       </div>
@@ -842,7 +842,7 @@ function FreeFormJsonForm({
         data-testid="genui-form-textarea"
       />
       <button type="submit" disabled={disabled} className="genui-surface__primary">
-        Submit
+        Enviar
       </button>
     </form>
   );
@@ -917,7 +917,7 @@ function SandboxedComponentSurface({
             disabled={busy}
             onClick={onSkip}
           >
-            Skip
+            Pular
           </button>
         </div>
       ) : null}

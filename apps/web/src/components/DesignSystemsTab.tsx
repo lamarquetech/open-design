@@ -691,8 +691,8 @@ export function DesignSystemsTab({
       {primaryCollection === 'design-system' && designSystemCollection === 'enterprise' ? (
         <ComingSoonPanel
           eyebrow="Design Systems"
-          title="Enterprise design systems"
-          body="Shared team design systems and governed brand libraries are coming soon."
+          title="Sistemas de design empresariais"
+          body="Sistemas de design compartilhados e bibliotecas de marca gerenciadas estarão disponíveis em breve."
         />
       ) : null}
 
@@ -727,8 +727,8 @@ export function DesignSystemsTab({
       {primaryCollection === 'template' && templateCollection === 'enterprise' ? (
         <ComingSoonPanel
           eyebrow="Templates"
-          title="Enterprise templates"
-          body="Team-approved templates and organization-wide publishing are coming soon."
+          title="Modelos empresariais"
+          body="Modelos aprovados pela equipe e publicação em nível organizacional estarão disponíveis em breve."
         />
       ) : null}
     </div>

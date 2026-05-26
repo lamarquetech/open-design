@@ -169,8 +169,8 @@ export function PluginLoopHome({ onSubmit }: Props) {
                 type="button"
                 className="plugin-loop-home__active-clear"
                 onClick={clearActive}
-                aria-label="Clear active plugin"
-                title="Clear active plugin"
+                aria-label="Limpar plugin ativo"
+                title="Limpar plugin ativo"
               >
                 ×
               </button>
@@ -296,7 +296,7 @@ export function PluginLoopHome({ onSubmit }: Props) {
                     onClick={() => openDetails(p)}
                     aria-label={`View details for ${p.title}`}
                     data-testid={`view-details-${p.id}`}
-                    title="View plugin details"
+                    title="Ver detalhes do plugin"
                   >
                     <Icon name="eye" size={12} />
                     <span>Details</span>

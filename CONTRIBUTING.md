@@ -1,30 +1,30 @@
-# Contributing to Open Design
+# Contribuindo com o Open Design
 
-Thanks for thinking about contributing. OD is small on purpose — most of the value lives in **files** (skills, design systems, prompt fragments) rather than framework code. That means the highest-leverage contributions are usually one folder, one Markdown file, or one PR-sized adapter.
+Obrigado por considerar contribuir. O OD é pequeno de propósito — a maior parte do valor mora em **arquivos** (skills, design systems, fragmentos de prompt) e não em código de framework. Isso significa que as contribuições com maior alavancagem geralmente são uma pasta, um arquivo Markdown ou um adapter do tamanho de um PR.
 
-This guide tells you exactly where to look for each type of contribution and what bar a PR has to clear before we merge it.
+Este guia diz exatamente onde olhar para cada tipo de contribuição e qual a barra que um PR precisa atingir antes do merge.
 
-<p align="center"><b>English</b> · <a href="CONTRIBUTING.pt-BR.md">Português (Brasil)</a> · <a href="CONTRIBUTING.de.md">Deutsch</a> · <a href="CONTRIBUTING.fr.md">Français</a> · <a href="CONTRIBUTING.zh-CN.md">简体中文</a> · <a href="CONTRIBUTING.ja-JP.md">日本語</a></p>
+<p align="center"><a href="CONTRIBUTING.md">English</a> · <b>Português (Brasil)</b> · <a href="CONTRIBUTING.de.md">Deutsch</a> · <a href="CONTRIBUTING.fr.md">Français</a> · <a href="CONTRIBUTING.zh-CN.md">简体中文</a> · <a href="CONTRIBUTING.ja-JP.md">日本語</a></p>
 
 ---
 
-## Three things you can ship in one afternoon
+## Três coisas que dá pra entregar em uma tarde
 
-| If you want to… | You're really adding | Where it lives | Ship size |
+| Se você quer… | Você está adicionando | Onde mora | Tamanho da entrega |
 |---|---|---|---|
-| Make OD render a new kind of artifact (an invoice, an iOS Settings screen, a one-pager…) | a **Skill** | [`skills/<your-skill>/`](skills/) | one folder, ~2 files |
-| Make OD speak a new brand's visual language | a **Design System** | [`design-systems/<brand>/DESIGN.md`](design-systems/) | one Markdown file |
-| Hook up a new coding-agent CLI | an **Agent adapter** | [`apps/daemon/src/agents.ts`](apps/daemon/src/agents.ts) | ~10 lines in one array |
-| Add a feature, fix a bug, lift a UX pattern from [`open-codesign`][ocod] | code | `apps/web/src/`, `apps/daemon/` | normal PR |
-| Improve docs, port a section to Français / Deutsch / 中文, fix typos | docs | `README.md`, `README.fr.md`, `README.de.md`, `README.zh-CN.md`, `docs/`, `QUICKSTART.md` | one PR |
+| Fazer o OD renderizar um novo tipo de artifact (uma nota fiscal, uma tela de Settings do iOS, um one-pager…) | uma **Skill** | [`skills/<sua-skill>/`](skills/) | uma pasta, ~2 arquivos |
+| Fazer o OD falar a linguagem visual de uma nova marca | um **Design System** | [`design-systems/<marca>/DESIGN.md`](design-systems/) | um arquivo Markdown |
+| Plugar um novo CLI de agente de código | um **Adapter de agente** | [`apps/daemon/src/agents.ts`](apps/daemon/src/agents.ts) | ~10 linhas em um array |
+| Adicionar uma feature, corrigir um bug, trazer um padrão de UX do [`open-codesign`][ocod] | código | `apps/web/src/`, `apps/daemon/` | PR normal |
+| Melhorar docs, traduzir uma seção para Français / Deutsch / 中文, corrigir typos | docs | `README.md`, `README.fr.md`, `README.de.md`, `README.zh-CN.md`, `docs/`, `QUICKSTART.md` | um PR |
 
-If you're not sure which bucket your idea is in, [open a discussion / issue first](https://github.com/nexu-io/open-design/issues/new) and we'll point you at the right surface.
+Se você não tem certeza em qual balde sua ideia se encaixa, [abra primeiro uma discussion / issue](https://github.com/nexu-io/open-design/issues/new) e te apontamos para a superfície certa.
 
 ---
 
-## Local setup
+## Setup local
 
-The full one-page setup lives in [`QUICKSTART.md`](QUICKSTART.md). The TL;DR for contributors:
+O setup completo numa página mora em [`QUICKSTART.pt-BR.md`](QUICKSTART.pt-BR.md). O TL;DR para contribuidores:
 
 ```bash
 git clone https://github.com/nexu-io/open-design.git
@@ -33,104 +33,102 @@ corepack enable           # selects the pinned pnpm from packageManager
 pnpm install
 pnpm tools-dev run web    # daemon + web foreground loop
 pnpm typecheck            # tsc -b --noEmit
-pnpm --filter @open-design/web build  # web package build when needed
+pnpm --filter @open-design/web build  # build do pacote web quando necessário
 ```
 
-Node `~24` and pnpm `10.33.x` are required. `nvm` / `fnm` are optional; use `nvm install 24 && nvm use 24` or `fnm install 24 && fnm use 24` if you prefer managing Node that way. macOS, Linux, and WSL2 are the primary paths. Windows native is supported; see [`docs/windows-troubleshooting.md`](docs/windows-troubleshooting.md) for the common setup gotchas.
+Node `~24` e pnpm `10.33.x` são obrigatórios. `nvm` / `fnm` são opcionais; use `nvm install 24 && nvm use 24` ou `fnm install 24 && fnm use 24` se preferir gerenciar Node assim. macOS, Linux e WSL2 são os caminhos principais. Windows nativo costuma funcionar, mas não é alvo principal — abra uma issue se quebrar.
 
-## Docker Setup
+Você não precisa de nenhum CLI de agente no `PATH` para desenvolver o próprio OD — o daemon dirá "no agents found" e cairá no caminho **Anthropic API · BYOK**, que é o loop de dev mais rápido de qualquer jeito.
 
-Run Open Design without installing Node.js or pnpm.
+---
 
-### Prerequisites
+## Adicionando uma nova Skill
 
-Make sure Docker Desktop with Compose v2 is installed:
+Uma skill é uma pasta sob [`skills/`](skills/) com um `SKILL.md` na raiz, seguindo a [convenção `SKILL.md`][skill] do Claude Code mais nossa extensão opcional `od:`. **Não há passo de registro.** Coloque a pasta, reinicie o daemon e o picker mostra.
 
-```bash
-docker compose version
-```
-
-### Start Open Design
-
-```bash
-cd deploy
-docker compose up -d
-```
-
-Open in your browser:
+### Layout da pasta da skill
 
 ```text
-http://localhost:7456
+skills/your-skill/
+├── SKILL.md                    # required
+├── assets/template.html        # optional but recommended — the seed file
+├── references/                 # optional — knowledge files the agent reads
+│   ├── layouts.md
+│   ├── components.md
+│   └── checklist.md
+└── example.html                # strongly recommended — a real, hand-built sample
 ```
 
-### Common Commands
+### Frontmatter do `SKILL.md`
 
-```bash
-# View logs
-docker compose logs -f
+As três primeiras chaves são a base spec do Claude Code — `name`, `description`, `triggers`. Tudo sob `od:` é específico do OD e opcional, mas **`od.mode`** decide em qual grupo a skill aparece (Prototype / Deck / Template / Design system).
 
-# Restart containers
-docker compose restart
+```yaml
+---
+name: your-skill
+description: |
+  One-paragraph elevator pitch. The agent reads this verbatim to decide
+  if the user's brief matches. Be concrete: surface, audience, what's in
+  the artifact, what's not.
+triggers:
+  - "your trigger phrase"
+  - "another phrase"
+  - "中文触发词"
+od:
+  mode: prototype           # prototype | deck | template | design-system
+  platform: desktop         # desktop | mobile
+  scenario: marketing       # free-form tag for grouping
+  featured: 1               # any positive integer surfaces it under "Showcase examples"
+  preview:
+    type: html              # html | jsx | pptx | markdown
+    entry: index.html
+  design_system:
+    requires: true          # does the skill read the active DESIGN.md?
+    sections: [color, typography, layout, components]
+  example_prompt: "A copy-pastable prompt that nicely shows what this skill does."
+---
 
-# Stop containers
-docker compose down
+# Your Skill
 
-# Pull latest image
-docker compose pull
-docker compose up -d
+Body is free-form Markdown describing the workflow the agent should follow…
 ```
 
-### Optional Environment Overrides
+A gramática completa — inputs tipados, parâmetros de slider, gating de capacidades — vive em [`docs/skills-protocol.md`](docs/skills-protocol.md).
 
-Create a `deploy/.env` file:
+### Barra para mergear uma nova skill
 
-```env
-OPEN_DESIGN_PORT=7456
-OPEN_DESIGN_MEM_LIMIT=384m
-OPEN_DESIGN_ALLOWED_ORIGINS=https://yourdomain.com
-OPEN_DESIGN_IMAGE=docker.io/vanjayak/open-design:latest
-```
+Somos exigentes com skills porque elas são a superfície voltada para o usuário. Uma nova skill precisa:
 
-> Projects and database data are persisted automatically using Docker volumes.
+1. **Trazer um `example.html` real.** Feito à mão, abre direto do disco e parece algo que um designer entregaria. Sem lorem ipsum, sem hero placeholder `<svg><rect/></svg>`. Se você não consegue construir o exemplo, provavelmente a skill ainda não está pronta.
+2. **Passar no checklist anti-AI-slop** no corpo. Sem gradiente roxo, sem ícones genéricos de emoji, sem card arredondado com borda lateral de destaque, sem Inter como fonte de *display*, sem stats inventados. Leia a seção **Anti-AI-slop machinery** do README para a lista completa.
+3. **Placeholders honestos.** Quando o agente não tem um número real, escreva `—` ou um bloco cinza com label, não "10× mais rápido".
+4. **Ter um `references/checklist.md`** com pelo menos os gates P0 (o que o agente precisa passar antes de emitir `<artifact>`). Pegue o formato em [`skills/guizang-ppt/references/checklist.md`](skills/guizang-ppt/) ou [`skills/dating-web/references/checklist.md`](skills/dating-web/).
+5. **Adicionar um screenshot** em `docs/screenshots/skills/<skill>.png` se a skill for featured. PNG, ~1024×640 retina, capturado do `example.html` real em zoom-out do navegador.
+6. **Ser uma única pasta self-contained.** Sem imports de CDN além do que outras skills já usam; sem fontes que você não licenciou; sem imagens maiores que ~250 KB.
 
-For the full Docker guide and advanced configuration, see `QUICKSTART.md`.
+Se você forkar uma skill existente (por exemplo, partir do `dating-web` e remixar para um `recruiting-web`), preserve o LICENSE original e a autoria em `references/` e mencione isso na descrição do PR.
 
+### Skills já entregues — pegue uma para imitar
 
+- Showcase visual, protótipo de tela única: [`skills/dating-web/`](skills/dating-web/), [`skills/digital-eguide/`](skills/digital-eguide/)
+- Fluxo mobile multi-frame: [`skills/mobile-onboarding/`](skills/mobile-onboarding/), [`skills/gamified-app/`](skills/gamified-app/)
+- Documento / template (sem design system obrigatório): [`skills/pm-spec/`](skills/pm-spec/), [`skills/weekly-update/`](skills/weekly-update/)
+- Modo deck: [`skills/guizang-ppt/`](skills/guizang-ppt/) (bundled literalmente de [op7418/guizang-ppt-skill][guizang]) e [`skills/simple-deck/`](skills/simple-deck/)
 
 ---
 
-## Adding a new Skill
+## Adicionando um novo Design System
 
-A skill is a folder under [`skills/`](skills/) with a `SKILL.md` at the root, following Claude Code's [`SKILL.md` convention][skill] plus our optional `od:` extension. **No registration step.** Drop the folder in, restart the daemon, the picker shows it.
+Um design system é um único arquivo [`DESIGN.md`](design-systems/README.md) sob `design-systems/<slug>/`. **Um arquivo, sem código.** Coloque, reinicie o daemon, o picker mostra agrupado por categoria.
 
-### → See [`docs/skills-contributing.md`](docs/skills-contributing.md) for the full guide
-
-That file walks through:
-
-- **Quick start** — clone → copy a closest existing skill → run `pnpm tools-dev run web` → see the picker → open PR.
-- **What a skill IS / IS NOT** — saves you a week if your idea turns out to be a feature or vendor integration in disguise.
-- **Skill anatomy** — minimum folder layout and `SKILL.md` frontmatter cheat sheet.
-- **Running locally** — the four commands that actually matter.
-- **Merge bar** — copy-pasteable checklist of every thing a reviewer will check.
-- **PR description template** — drop into your PR body and fill in.
-- **Common rejection patterns** — the close reasons we've used recently, with concrete examples.
-
-The protocol spec (full frontmatter grammar — typed inputs, slider parameters, craft references, testing primitives) lives separately in [`docs/skills-protocol.md`](docs/skills-protocol.md).
-
----
-
-## Adding a new Design System
-
-A design system is a single [`DESIGN.md`](design-systems/README.md) file under `design-systems/<slug>/`. **One file, no code.** Drop it in, restart the daemon, the picker shows it grouped by category.
-
-### Design system folder layout
+### Layout da pasta do design system
 
 ```text
 design-systems/your-brand/
 └── DESIGN.md
 ```
 
-### `DESIGN.md` shape
+### Formato do `DESIGN.md`
 
 ```markdown
 # Design System Inspired by YourBrand
@@ -156,23 +154,23 @@ design-systems/your-brand/
 ## 9. Anti-patterns
 ```
 
-The 9-section schema is fixed — that's what skill bodies grep for. The first H1 becomes the picker label (the `Design System Inspired by` prefix is stripped automatically), and the `> Category: …` line decides which group it lands in. Existing categories are listed in [`design-systems/README.md`](design-systems/README.md); if your brand truly doesn't fit, you can introduce a new one, but **try existing categories first**.
+O schema de 9 seções é fixo — é o que os corpos das skills procuram via grep. O primeiro H1 vira o label do picker (o prefixo `Design System Inspired by` é removido automaticamente) e a linha `> Category: …` decide em qual grupo o sistema cai. As categorias existentes estão em [`design-systems/README.md`](design-systems/README.md); se sua marca realmente não couber, dá pra introduzir uma nova, mas **tente as existentes primeiro**.
 
-### Bar for merging a new design system
+### Barra para mergear um novo design system
 
-1. **All 9 sections present.** Empty section bodies are fine for hard-to-find data (e.g. motion tokens), but the headings have to be there or the prompt grep breaks.
-2. **Hex codes are real.** Sample directly from the brand's site or product, not from memory or AI guesses. The README's "brand-spec extraction" 5-step protocol applies to maintainers too.
-3. **OKLch values for accent colors** are nice-to-have. They make palettes lerp predictably across light/dark.
-4. **No marketing fluff.** The brand's tagline is not a design token. Cut it.
-5. **Slug uses ASCII** — `linear.app` becomes `linear-app`, `x.ai` becomes `x-ai`. The 69 imported systems already follow this convention; mirror it.
+1. **As 9 seções presentes.** Corpos vazios são aceitáveis para dados difíceis (por exemplo, motion tokens), mas os títulos precisam estar lá ou o grep do prompt quebra.
+2. **Códigos hex reais.** Amostre direto do site ou produto da marca, não da memória nem de chute de IA. O protocolo de extração de spec da marca em 5 passos do README vale também para mantenedores.
+3. **Valores OKLch para cores de destaque** são desejáveis. Eles fazem paletas interpolarem de forma previsível entre claro/escuro.
+4. **Sem fluff de marketing.** O slogan da marca não é um design token. Corte.
+5. **Slug em ASCII** — `linear.app` vira `linear-app`, `x.ai` vira `x-ai`. Os 69 sistemas importados já seguem essa convenção; espelhe.
 
-The 69 product systems we ship are imported from [`VoltAgent/awesome-design-md`][acd2] via [`scripts/sync-design-systems.ts`](scripts/sync-design-systems.ts). If your brand belongs upstream, **send the PR there first** — we'll pick it up automatically on the next sync. The `design-systems/` folder is for systems that don't fit upstream, plus our two hand-authored starters.
+Os 69 sistemas de produto que entregamos são importados de [`VoltAgent/awesome-design-md`][acd2] via [`scripts/sync-design-systems.ts`](scripts/sync-design-systems.ts). Se sua marca pertence ao upstream, **mande o PR para lá primeiro** — pegamos automaticamente no próximo sync. A pasta `design-systems/` é para sistemas que não cabem no upstream, mais nossos dois starters escritos à mão.
 
 ---
 
-## Adding a new coding-agent CLI
+## Adicionando um novo CLI de agente de código
 
-Hooking up a new agent (e.g. some new shop's `foo-coder` CLI) is one entry in [`apps/daemon/src/agents.ts`](apps/daemon/src/agents.ts):
+Plugar um novo agente (por exemplo, o CLI `foo-coder` de alguma loja nova) é uma entrada em [`apps/daemon/src/agents.ts`](apps/daemon/src/agents.ts):
 
 ```javascript
 {
@@ -185,130 +183,130 @@ Hooking up a new agent (e.g. some new shop's `foo-coder` CLI) is one entry in [`
 }
 ```
 
-That's it — daemon will detect it on `PATH`, the picker shows it, the chat path works. If the CLI emits **typed events** (like Claude Code's `--output-format stream-json`), wire a parser in [`apps/daemon/src/claude-stream.ts`](apps/daemon/src/claude-stream.ts) and set `streamFormat: 'claude-stream-json'`.
+É só isso — o daemon detecta no `PATH`, o picker mostra, o caminho de chat funciona. Se o CLI emite **eventos tipados** (como o `--output-format stream-json` do Claude Code), conecte um parser em [`apps/daemon/src/claude-stream.ts`](apps/daemon/src/claude-stream.ts) e defina `streamFormat: 'claude-stream-json'`.
 
-Bar for merging:
+Barra para mergear:
 
-1. **A real session works end-to-end** with the new agent — paste the daemon log into the PR description showing it streamed an artifact through.
-2. **`docs/agent-adapters.md`** is updated with the CLI's quirks (does it require a key file? does it support image input? what's its non-interactive flag?).
-3. **The README's "Supported coding agents" table** gets one row.
+1. **Uma sessão real funciona end-to-end** com o novo agente — cole o log do daemon na descrição do PR mostrando que ele conseguiu streamar um artifact.
+2. **`docs/agent-adapters.md`** atualizado com as peculiaridades do CLI (precisa de arquivo de chave? aceita imagem? qual a flag não-interativa?).
+3. **A tabela "Supported coding agents" do README** ganha uma linha.
 
 ---
 
-## Updating model `max_tokens` metadata
+## Atualizando metadados de `max_tokens` dos modelos
 
-API-mode chat sends `max_tokens` to the upstream provider on every request. The web client picks that number from a three-tier lookup in [`apps/web/src/state/maxTokens.ts`](apps/web/src/state/maxTokens.ts):
+O chat em modo API envia `max_tokens` para o provider upstream em toda requisição. O cliente web pega esse número de uma busca em três níveis em [`apps/web/src/state/maxTokens.ts`](apps/web/src/state/maxTokens.ts):
 
-1. The user's explicit override in Settings, if set.
-2. Otherwise, the per-model default in [`apps/web/src/state/litellm-models.json`](apps/web/src/state/litellm-models.json) — a vendored slice of [BerriAI/litellm][litellm]'s `model_prices_and_context_window.json` (MIT). It covers ~2k chat models across Anthropic, OpenAI, DeepSeek, Groq, Together, Mistral, Gemini, Bedrock, Vertex, OpenRouter, and friends.
-3. Otherwise, `FALLBACK_MAX_TOKENS = 8192`.
+1. O override explícito do usuário em Settings, se definido.
+2. Caso contrário, o default por modelo em [`apps/web/src/state/litellm-models.json`](apps/web/src/state/litellm-models.json) — uma fatia vendored do `model_prices_and_context_window.json` do [BerriAI/litellm][litellm] (MIT). Cobre ~2k modelos de chat de Anthropic, OpenAI, DeepSeek, Groq, Together, Mistral, Gemini, Bedrock, Vertex, OpenRouter etc.
+3. Caso contrário, `FALLBACK_MAX_TOKENS = 8192`.
 
-To pick up a newly-launched model, regenerate the vendored JSON:
+Para incluir um modelo recém-lançado, regere o JSON vendored:
 
 ```bash
 node --experimental-strip-types scripts/sync-litellm-models.ts
 ```
 
-The script fetches LiteLLM's catalog, filters to `mode: 'chat'` entries, projects each to its `max_output_tokens` (or `max_tokens` fallback), and writes a sorted snapshot. Commit the regenerated `litellm-models.json` alongside whatever PR triggered the refresh.
+O script busca o catálogo do LiteLLM, filtra entradas `mode: 'chat'`, projeta cada uma para `max_output_tokens` (com fallback em `max_tokens`) e grava um snapshot ordenado. Faça commit do `litellm-models.json` regerado junto com o PR que disparou o refresh.
 
-The OVERRIDES table in `maxTokens.ts` is for the rare case where LiteLLM is missing or wrong for a model id we actually use — for example, `mimo-v2.5-pro` (LiteLLM only ships MiMo via the `openrouter/xiaomi/...` and `novita/xiaomimimo/...` aliases, neither of which matches the canonical id Xiaomi's direct API uses). Keep it small; everything that LiteLLM gets right belongs upstream.
+A tabela OVERRIDES em `maxTokens.ts` é para o caso raro em que o LiteLLM está faltando ou errado para um id de modelo que de fato usamos — por exemplo, `mimo-v2.5-pro` (o LiteLLM só entrega o MiMo via aliases `openrouter/xiaomi/...` e `novita/xiaomimimo/...`, e nenhum bate com o id canônico que a API direta da Xiaomi usa). Mantenha-a pequena; tudo que o LiteLLM acerta pertence ao upstream.
 
 [litellm]: https://github.com/BerriAI/litellm
 
 ---
 
-## Localization maintenance
+## Manutenção de localização
 
-German uses formal `Sie` because OD speaks to a mixed audience of solo creators, agencies, and engineering teams; until project feedback shows that an informal `du` voice fits better, formal German is the least surprising default. Locale PRs should translate UI chrome, core docs, and display-only gallery metadata in `apps/web/src/i18n/content.ts`, but should not translate `skills/`, `design-systems/`, or prompt bodies that agents execute. Those source prompts are maintained as workflow inputs, and keeping one source language avoids multiplying prompt QA across locales. When adding or renaming a skill, design system, or prompt template, update the German display metadata and run `pnpm --filter @open-design/web test`; `content.test.ts` fails if German display coverage drifts. Daemon errors, export filenames, and agent-generated artifact text are known limitations unless a PR explicitly scopes them.
+Alemão usa o formal `Sie` porque o OD fala com uma audiência mista de criadores solo, agências e times de engenharia; até feedback do projeto mostrar que uma voz informal `du` se encaixa melhor, alemão formal é o default menos surpreendente. PRs de locale devem traduzir chrome de UI, docs principais e metadados visuais de galeria em `apps/web/src/i18n/content.ts`, mas não devem traduzir `skills/`, `design-systems/` nem corpos de prompt que os agentes executam. Esses prompts-fonte são mantidos como entradas de workflow, e manter um único idioma de fonte evita multiplicar QA de prompt entre locales. Ao adicionar ou renomear uma skill, design system ou prompt template, atualize os metadados de display em alemão e rode `pnpm --filter @open-design/web test`; o `content.test.ts` falha se a cobertura de display em alemão sair de sincronia. Erros do daemon, nomes de arquivos exportados e texto de artifact gerado pelo agente são limitações conhecidas, a menos que um PR explicitamente os englobe.
 
-For step-by-step instructions on adding a new locale (UI dictionary, README, language switcher, regional terminology), see [`TRANSLATIONS.md`](TRANSLATIONS.md).
+Para instruções passo a passo sobre adicionar um novo locale (dicionário de UI, README, language switcher, terminologia regional), veja [`TRANSLATIONS.md`](TRANSLATIONS.md).
 
 ---
 
-## Code style
+## Estilo de código
 
-We're not pedantic about formatting (Prettier on save is fine), but two rules are non-negotiable because they show up in the prompt stack and the user-facing API:
+Não somos pedantes com formatação (Prettier on save está ok), mas duas regras são inegociáveis porque aparecem na pilha de prompt e na API voltada ao usuário:
 
-1. **Single quotes in JS/TS.** Strings are single-quoted unless escaping makes them ugly. The codebase is already consistent — please match.
-2. **Comments in English.** Even if the PR is translating something into Deutsch or 中文, code comments stay in English so we can keep one set of greppable references.
+1. **Aspas simples em JS/TS.** Strings ficam com aspas simples a menos que escapar fique feio. O codebase já está consistente — siga.
+2. **Comentários em inglês.** Mesmo se o PR é para traduzir algo para alemão ou 中文, comentários de código ficam em inglês para mantermos um único conjunto de referências grepáveis.
 
-Beyond that:
+Além disso:
 
-- **Don't narrate.** No `// import the module`, no `// loop through items`. If the code reads obviously, the comment is noise. Save comments for non-obvious intent or constraints the code can't express.
-- **TypeScript** for `apps/web/src/`. The daemon (`apps/daemon/`) is plain ESM JavaScript with JSDoc when types matter — keep it that way.
-- **No new top-level dependencies** without a paragraph in the PR description on what we get vs. what bytes we ship. The dep list in [`package.json`](package.json) is small on purpose.
-- **Run `pnpm typecheck`** before pushing. CI runs it; failing it earns a "please fix" comment.
+- **Não narre.** Sem `// import the module`, sem `// loop through items`. Se o código se lê obviamente, o comentário é ruído. Reserve comentários para intenção não-óbvia ou restrições que o código não consegue expressar.
+- **TypeScript** em `apps/web/src/`. O daemon (`apps/daemon/`) é JavaScript ESM puro com JSDoc onde tipos importam — mantenha assim.
+- **Sem novas dependências top-level** sem um parágrafo na descrição do PR sobre o que ganhamos vs. quantos bytes despachamos. A lista de deps em [`package.json`](package.json) é pequena de propósito.
+- **Rode `pnpm typecheck`** antes do push. CI roda; falhar lá rende um comentário "please fix".
 
 ---
 
 ## Commits & pull requests
 
-- **One concern per PR.** Adding a skill + refactoring the parser + bumping a dep is three PRs.
-- **Title is imperative + scope.** `add dating-web skill`, `fix daemon SSE backpressure when CLI hangs`, `docs: clarify .od layout`.
-- **Use the PR template.** Fill every section of [`.github/pull_request_template.md`](.github/pull_request_template.md) — Why, What users will see, Surface area, Screenshots (if UI), Bug fix verification (if bug fix), Validation. Empty sections earn a "please fill in" reply.
-- **Body explains the why.** "What does this do" is usually obvious from the diff; "why does this need to exist" rarely is.
-- **Reference an issue** if there is one. If there isn't and the PR is non-trivial, open one first so we can agree the change is wanted before you spend the time.
-- **No squash-during-review.** Push fixups; we'll squash on merge.
-- **No force-push to a shared branch** unless the reviewer asked.
+- **Uma preocupação por PR.** Adicionar uma skill + refatorar o parser + bumpar uma dep são três PRs.
+- **Título é imperativo + escopo.** `add dating-web skill`, `fix daemon SSE backpressure when CLI hangs`, `docs: clarify .od layout`.
+- **Corpo explica o porquê.** "O que isso faz" geralmente é óbvio do diff; "por que isso precisa existir" raramente é.
+- **Referencie uma issue** se houver. Se não houver e o PR for não-trivial, abra uma antes para combinarmos que a mudança é desejada antes de você gastar o tempo.
+- **Sem squash durante review.** Empurre fixups; squash no merge.
+- **Sem force-push em branch compartilhado** a não ser que o reviewer tenha pedido.
 
-We don't enforce a CLA. Apache-2.0 covers us; your contribution is licensed under the same.
-
----
-
-## Reporting bugs
-
-Open an issue with:
-
-- What you ran (the exact `pnpm tools-dev ...` invocation).
-- Which agent CLI was selected (or whether you were on the BYOK path).
-- The skill + design system pair that triggered it.
-- The relevant **daemon stderr tail** — most "the artifact never rendered" reports get diagnosed in 30 seconds when we can see `spawn ENOENT` or the CLI's actual error.
-- A screenshot if it's UI.
-
-For prompt-stack bugs ("the agent emitted a purple gradient hero, the slop blacklist was supposed to forbid that"), include the **full assistant message** so we can see whether the violation was the model or the prompt.
+Não exigimos CLA. A Apache-2.0 nos cobre; sua contribuição é licenciada nos mesmos termos.
 
 ---
 
-## Asking questions
+## Reportando bugs
 
-- Architecture question, design question, "is this a bug or a misuse" → [GitHub Discussions](https://github.com/nexu-io/open-design/discussions) (preferred — searchable for the next person).
-- "How do I write a skill that does X" → Open a discussion. We'll answer it and turn the answer into [`docs/skills-protocol.md`](docs/skills-protocol.md) if it's a missing pattern.
+Abra uma issue com:
 
----
+- O que você executou (a invocação `pnpm tools-dev ...` exata).
+- Qual CLI de agente foi selecionado (ou se você estava no caminho BYOK).
+- O par skill + design system que disparou.
+- A **tail relevante de stderr do daemon** — a maior parte dos relatos "o artifact nunca renderizou" são diagnosticados em 30 segundos quando dá pra ver `spawn ENOENT` ou o erro real do CLI.
+- Um screenshot se for UI.
 
-## What we don't accept
-
-To keep the project focused, please don't open PRs that:
-
-- **Vendor a model runtime.** OD's whole bet is "your existing CLI is enough". We don't ship `pi-ai`, OpenAI keys, or model loaders.
-- **Rewrite the frontend away from the current stack without prior discussion.** Next.js 16 App Router + React 18 + TS is the line. No Astro, Solid, Svelte, or other framework rewrites unless maintainers explicitly want that migration.
-- **Replace the daemon with a serverless function.** The daemon's whole point is owning a real `cwd` and spawning a real CLI. Vercel deployment of the SPA is fine; the daemon stays a daemon.
-- **Add telemetry / analytics / phone-home.** OD is local-first. The only outbound calls are to providers the user explicitly configured.
-- **Bundle a binary** without a license file and authorship attribution next to it.
-
-If you're not sure whether your idea fits, open a discussion before writing the code.
+Para bugs da pilha de prompt ("o agente emitiu um hero com gradiente roxo, a blacklist de slop deveria proibir isso"), inclua a **mensagem completa do assistente** para conseguirmos ver se a violação foi do modelo ou do prompt.
 
 ---
 
-## Becoming a Maintainer
+## Fazendo perguntas
 
-If you've been contributing consistently and want to know what the path to becoming a Maintainer looks like, the rules live in **[`MAINTAINERS.md`](MAINTAINERS.md)**. The short version:
+- Pergunta de arquitetura, pergunta de design, "isso é bug ou mau uso" → [GitHub Discussions](https://github.com/nexu-io/open-design/discussions) (preferido — pesquisável para o próximo).
+- "Como escrevo uma skill que faz X" → Abra uma discussion. Respondemos e transformamos a resposta em [`docs/skills-protocol.md`](docs/skills-protocol.md) se for um padrão faltante.
 
-- A Maintainer can review, approve, and close issues. The merge button stays with the Core Team — your approval still counts as the required approval for merge.
-- The bar is **≥ 20 merged PRs** plus a published account-quality check (anti-bot, anti-sock-puppet) plus a Core Team judgment on contribution quality. There is no application form; the Core Team raises candidates internally and reaches out.
-- There are **no quotas, no SLAs, and no fixed term.** Stepping down is easy and reversible (Emeritus → return when life calms down).
-- All the thresholds, the nomination flow, the step-down rules, and the early-project waiver are in [`MAINTAINERS.md`](MAINTAINERS.md). Read that document if any of the above interests you.
+---
 
-The tl;dr: ship good PRs, review thoughtfully, hang out in [Discussions][discussions] / [Discord][discord], and the rest takes care of itself.
+## O que não aceitamos
+
+Para manter o projeto focado, por favor não abra PRs que:
+
+- **Embutam um runtime de modelo.** Toda a aposta do OD é "seu CLI existente já basta". Não despachamos `pi-ai`, chaves OpenAI nem loaders de modelo.
+- **Reescrevam o frontend para fora da stack atual sem discussão prévia.** Next.js 16 App Router + React 18 + TS é a linha. Sem Astro, Solid, Svelte ou outras reescritas de framework a menos que mantenedores explicitamente queiram essa migração.
+- **Substituam o daemon por uma função serverless.** O ponto inteiro do daemon é ter um `cwd` real e spawnar um CLI real. Deploy do SPA na Vercel está ok; o daemon continua daemon.
+- **Adicionem telemetry / analytics / phone-home.** O OD é local-first. As únicas chamadas de saída são para providers que o usuário configurou explicitamente.
+- **Empacotem um binário** sem arquivo de licença e atribuição de autoria ao lado.
+
+Se não tem certeza se sua ideia se encaixa, abra uma discussion antes de escrever o código.
+
+---
+
+<!-- Machine-translated section; native-speaker review welcome via PR. -->
+## Tornando-se um Maintainer
+
+Se você vem contribuindo de forma consistente e quer saber como é o caminho para se tornar um Maintainer, as regras estão em **[`MAINTAINERS.md`](MAINTAINERS.md)**. A versão curta:
+
+- Um Maintainer pode revisar, aprovar e fechar issues. O botão de merge continua com o Core Team — sua aprovação ainda conta como a aprovação obrigatória para merge.
+- A barra é **≥ 20 merged PRs** mais uma verificação publicada de qualidade da conta (anti-bot, anti-sock-puppet) mais um julgamento do Core Team sobre a qualidade da contribuição. Não há formulário de inscrição; o Core Team levanta candidatos internamente e entra em contato.
+- **Não há cotas, nem SLAs, nem mandato fixo.** Sair é fácil e reversível (Emeritus → volte quando a vida acalmar).
+- Todos os limiares, o fluxo de nomeação, as regras de step-down e o waiver de projeto inicial estão em [`MAINTAINERS.md`](MAINTAINERS.md). Leia esse documento se algo acima te interessar.
+
+O tl;dr: mande bons PRs, revise com cuidado, apareça nas [Discussions][discussions] / no [Discord][discord], e o resto se resolve sozinho.
 
 [discussions]: https://github.com/nexu-io/open-design/discussions
 [discord]: https://discord.gg/qhbcCH8Am4
 
 ---
 
-## License
+## Licença
 
-By contributing, you agree your contribution is licensed under the [Apache-2.0 License](LICENSE) of this repository, with the exception of files inside [`skills/guizang-ppt/`](skills/guizang-ppt/), which retain their original MIT license and authorship attribution to [op7418](https://github.com/op7418).
+Ao contribuir, você concorda que sua contribuição é licenciada sob a [Licença Apache-2.0](LICENSE) deste repositório, com a exceção dos arquivos dentro de [`skills/guizang-ppt/`](skills/guizang-ppt/), que mantêm sua licença MIT original e atribuição de autoria a [op7418](https://github.com/op7418).
 
 [skill]: https://docs.anthropic.com/en/docs/claude-code/skills
 [guizang]: https://github.com/op7418/guizang-ppt-skill

@@ -51,7 +51,7 @@ export function renderDesignSystemPreview(id: string, raw: string): string {
   const renderedMarkdown = renderMarkdownLite(raw);
 
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />

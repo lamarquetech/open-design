@@ -599,7 +599,7 @@ function SkillRow({
               {skill.source === 'user' ? (
                 <span
                   className="skills-row-summary-source"
-                  title="User-imported skill"
+                  title="Habilidade importada pelo usuário"
                 >
                   user
                 </span>
@@ -804,7 +804,7 @@ function SkillDraftForm({
             type="text"
             value={draft.name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            placeholder="my-skill"
+            placeholder="minha-habilidade"
             disabled={isEdit}
           />
         </label>
@@ -816,7 +816,7 @@ function SkillDraftForm({
             onChange={(e) =>
               setDraft((d) => ({ ...d, triggers: e.target.value }))
             }
-            placeholder="search the web, summarize"
+            placeholder="pesquisar na web, resumir"
           />
         </label>
       </div>
@@ -828,7 +828,7 @@ function SkillDraftForm({
           onChange={(e) =>
             setDraft((d) => ({ ...d, description: e.target.value }))
           }
-          placeholder="What does this skill do? When should the agent reach for it?"
+          placeholder="O que esta habilidade faz? Quando o agente deve usá-la?"
         />
       </label>
       <label className="library-import-block">

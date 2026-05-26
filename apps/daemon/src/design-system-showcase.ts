@@ -108,7 +108,7 @@ export function renderDesignSystemShowcase(id: string, raw: string): string {
   const tagline = oneLine(subtitle).slice(0, 120);
 
   return `<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />

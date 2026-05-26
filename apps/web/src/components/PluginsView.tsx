@@ -624,8 +624,8 @@ function PluginShareConfirmModal({
             className="plugin-details-modal__close"
             onClick={onClose}
             disabled={pending}
-            aria-label="Close share confirmation"
-            title="Close"
+            aria-label="Fechar confirmação de compartilhamento"
+            title="Fechar"
           >
             <Icon name="close" size={18} />
           </button>
@@ -1057,8 +1057,8 @@ function AvailablePluginDetailsModal({
             className="plugin-details-modal__close"
             onClick={onClose}
             disabled={pending}
-            aria-label="Close available plugin details"
-            title="Close"
+            aria-label="Fechar detalhes do plugin disponível"
+            title="Fechar"
           >
             <Icon name="close" size={18} />
           </button>
@@ -1503,32 +1503,32 @@ function PluginImportModal({
             type="button"
             className="plugins-import-modal__close"
             onClick={onClose}
-            aria-label="Close import dialog"
+            aria-label="Fechar diálogo de importação"
           >
             <Icon name="close" size={16} />
           </button>
         </header>
 
-        <nav className="plugins-import-modal__tabs" aria-label="Import source">
+        <nav className="plugins-import-modal__tabs" aria-label="Fonte de importação">
           <ImportChoice
             active={kind === 'github'}
             icon="github"
-            title="From GitHub"
-            body="Install github:owner/repo paths."
+            title="Do GitHub"
+            body="Instalar caminhos github:owner/repo."
             onClick={() => setKind('github')}
           />
           <ImportChoice
             active={kind === 'zip'}
             icon="upload"
-            title="Upload zip"
-            body="Upload a plugin archive."
+            title="Enviar zip"
+            body="Enviar um arquivo de plugin."
             onClick={() => setKind('zip')}
           />
           <ImportChoice
             active={kind === 'folder'}
             icon="folder"
-            title="Upload folder"
-            body="Upload a plugin directory."
+            title="Enviar pasta"
+            body="Enviar um diretório de plugin."
             onClick={() => setKind('folder')}
           />
         </nav>
@@ -1563,8 +1563,8 @@ function PluginImportModal({
 
           {kind === 'zip' ? (
             <FileImportPanel
-              title="Upload zip"
-              body="Choose a .zip archive containing open-design.json, SKILL.md, or .claude-plugin/plugin.json."
+              title="Enviar zip"
+              body="Escolha um arquivo .zip contendo open-design.json, SKILL.md ou .claude-plugin/plugin.json."
               accept=".zip,application/zip"
               working={working}
               fileLabel={zipFile?.name ?? 'No zip selected'}
@@ -1576,8 +1576,8 @@ function PluginImportModal({
 
           {kind === 'folder' ? (
             <FileImportPanel
-              title="Upload folder"
-              body="Choose a plugin folder. Relative paths are preserved and installed into your user plugin registry."
+              title="Enviar pasta"
+              body="Escolha uma pasta de plugin. Caminhos relativos são preservados e instalados no registro de plugins do usuário."
               working={working}
               fileLabel={
                 folderFiles.length > 0

@@ -1,21 +1,17 @@
-# Quickstart
+# Início rápido
 
-<p align="center"><b>English</b> · <a href="QUICKSTART.pt-BR.md">Português (Brasil)</a> · <a href="QUICKSTART.de.md">Deutsch</a> · <a href="QUICKSTART.fr.md">Français</a> · <a href="QUICKSTART.ja-JP.md">日本語</a> · <a href="QUICKSTART.zh-CN.md">简体中文</a> · <a href="QUICKSTART.zh-TW.md">繁體中文</a></p>
+<p align="center"><a href="QUICKSTART.md">English</a> · <b>Português (Brasil)</b> · <a href="QUICKSTART.de.md">Deutsch</a> · <a href="QUICKSTART.fr.md">Français</a> · <a href="QUICKSTART.ja-JP.md">日本語</a> · <a href="QUICKSTART.zh-CN.md">简体中文</a> · <a href="QUICKSTART.zh-TW.md">繁體中文</a></p>
 
-Run the full product locally.
+Rode o produto inteiro localmente.
 
-## Environment requirements
+## Requisitos de ambiente
 
-- **Node.js:** `~24` (Node 24.x). The repo enforces this through `package.json#engines`.
-- **pnpm:** `10.33.x`. The repo pins `pnpm@10.33.2` through `packageManager`; use Corepack so the pinned version is selected automatically.
-- **OS:** macOS, Linux, and WSL2 are the primary paths. Windows native is supported; see [`docs/windows-troubleshooting.md`](docs/windows-troubleshooting.md) for common setup gotchas.
-- **Optional local agent CLI:** Claude Code, Codex, Devin for Terminal, Gemini CLI, OpenCode, Cursor Agent, Qwen, Qoder CLI, GitHub Copilot CLI, etc. If none are installed, use the BYOK API mode from Settings.
+- **Node.js:** `~24` (Node 24.x). O repo força isso via `package.json#engines`.
+- **pnpm:** `10.33.x`. O repo fixa `pnpm@10.33.2` via `packageManager`; use Corepack para selecionar a versão fixada automaticamente.
+- **SO:** macOS, Linux e WSL2 são os caminhos principais. Windows nativo costuma funcionar para a maioria dos fluxos, mas WSL2 é a base mais segura.
+- **CLI de agente local (opcional):** Claude Code, Codex, Devin for Terminal, Gemini CLI, OpenCode, Cursor Agent, Qwen, GitHub Copilot CLI etc. Sem nenhum instalado, use o modo BYOK API em Settings.
 
-### Local agent CLI and PATH
-
-The daemon scans your **`PATH`** (plus common user toolchain directories). If you install a CLI with **`npm install -g`** or **Homebrew** and Open Design still shows it as *not installed*, the GUI may be starting with a minimal `PATH` that does not include your global npm or Homebrew `bin` directory (common on macOS when the app is not launched from a full login shell). Ensure the executable’s directory is on `PATH` for the process that runs the daemon, then use **Rescan** in **Settings → Execution mode**.
-
-[`nvm`](https://github.com/nvm-sh/nvm) / [`fnm`](https://github.com/Schniz/fnm) are optional convenience tools, not required project setup. If you use one, install/select Node 24 before running pnpm:
+`nvm` / `fnm` são ferramentas opcionais de conveniência, não são parte obrigatória do setup do projeto. Se você usa um deles, instale/selecione o Node 24 antes de rodar pnpm:
 
 ```bash
 # nvm
@@ -27,137 +23,14 @@ fnm install 24
 fnm use 24
 ```
 
-Then enable Corepack and let the repo select pnpm:
+Em seguida, habilite o Corepack e deixe o repo escolher o pnpm:
 
 ```bash
 corepack enable
 corepack pnpm --version   # should print 10.33.2
 ```
 
-## Docker Setup
-
-Run Open Design in a fully containerised environment without installing Node.js or pnpm locally.
-
-### Requirements
-
-* Docker Desktop
-* Docker Compose v2
-
-Verify Docker is installed correctly:
-
-```bash
-docker compose version
-```
-
----
-
-## Start Open Design
-
-From the repository root:
-
-```bash
-cd deploy
-docker compose up -d
-```
-
-Open the app in your browser:
-
-```text
-http://localhost:7456
-```
-
-The first startup may take a few seconds while Docker pulls the latest image.
-
----
-
-## Common Docker Commands
-
-### View logs
-
-```bash
-docker compose logs -f
-```
-
-### Restart containers
-
-```bash
-docker compose restart
-```
-
-### Stop containers
-
-```bash
-docker compose down
-```
-
-### Pull the latest image
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-### Remove all local app data
-
-```bash
-docker compose down -v
-```
-
----
-
-## Environment Configuration
-
-Create a `deploy/.env` file to override the default configuration:
-
-```env
-# Port exposed on the host
-OPEN_DESIGN_PORT=7456
-
-# Container memory limit
-OPEN_DESIGN_MEM_LIMIT=384m
-
-# Allowed CORS origins
-OPEN_DESIGN_ALLOWED_ORIGINS=https://yourdomain.com
-
-# Docker image tag
-OPEN_DESIGN_IMAGE=docker.io/vanjayak/open-design:latest
-```
-
----
-
-## Persistent Storage
-
-Open Design stores projects and SQLite data inside a Docker volume:
-
-```text
-open_design_data
-```
-
-The volume is mounted to:
-
-```text
-/app/.od
-```
-
-Data persists across container restarts and image updates.
-
-Inspect the volume:
-
-```bash
-docker volume inspect open-design_open_design_data
-```
-
----
-
-## Notes
-
-* Docker mode is ideal for contributors who do not want a local Node.js or pnpm setup.
-* The container exposes the production daemon build directly on port `7456`.
-* For development workflows and advanced local setup, see the rest of this Quickstart guide.
-
----
-
-## One-shot (dev mode)
+## Em um único comando (modo dev)
 
 ```bash
 corepack enable
@@ -166,24 +39,24 @@ pnpm tools-dev run web # starts daemon + web in the foreground
 # open the web URL printed by tools-dev
 ```
 
-For the desktop shell and all managed sidecars in the background:
+Para a shell desktop e todos os sidecars gerenciados em background:
 
 ```bash
 pnpm tools-dev # starts daemon + web + desktop in the background
 ```
 
-On first load, the app detects your installed code-agent CLI (Claude Code / Codex / Devin for Terminal / Gemini / OpenCode / Cursor Agent / Qwen / Qoder CLI), picks it automatically, and defaults to `web-prototype` skill + `Neutral Modern` design system. Type a prompt and hit **Send**. The agent streams into the left pane; the `<artifact>` tag is parsed out and the HTML renders live on the right. When it finishes, click **Save to disk** to persist the artifact under `./.od/artifacts/<timestamp>-<slug>/index.html`.
+No primeiro carregamento, o app detecta o CLI de agente instalado (Claude Code / Codex / Devin for Terminal / Gemini / OpenCode / Cursor Agent / Qwen), seleciona automaticamente e usa por padrão o skill `web-prototype` + design system `Neutral Modern`. Digite um prompt e clique em **Send**. O agente faz streaming no painel da esquerda; a tag `<artifact>` é parseada e o HTML é renderizado ao vivo na direita. Ao terminar, clique em **Save to disk** para persistir o artifact em `./.od/artifacts/<timestamp>-<slug>/index.html`.
 
-The **Design system** dropdown ships with 71 built-in systems — 2 hand-authored starters (Neutral Modern, Warm Editorial) and 69 product systems imported from [`awesome-design-md`](https://github.com/VoltAgent/awesome-design-md), grouped by category (AI & LLM, Developer Tools, Productivity, Backend, Design Tools, Fintech, E-Commerce, Media, Automotive). Pick one to skin every prototype in that brand's aesthetic, and another set of 57 design skills sourced from [`awesome-design-skills`](https://github.com/bergside/awesome-design-skills).
+O dropdown **Design system** vem com **129 design systems** — 2 starters escritos à mão (Neutral Modern, Warm Editorial), 70 sistemas de produto bundled e 57 design skills vindos de [`awesome-design-skills`](https://github.com/bergside/awesome-design-skills). Escolha um para vestir cada protótipo na estética daquela marca.
 
-The **Skill** dropdown groups by mode (Prototype / Deck / Template / Design system) and shows the default skill per mode with a `· default` suffix. Bundled skills:
+O dropdown **Skill** agrupa por modo (Prototype / Deck / Template / Design system) e exibe o skill default de cada modo com um sufixo `· default`. Skills bundled:
 
-- **Prototype** — `web-prototype` (generic), `saas-landing`, `dashboard`, `pricing-page`, `docs-page`, `blog-post`, `mobile-app`.
-- **Deck / PPT** — `simple-deck` (single-file horizontal swipe) and `magazine-web-ppt` (the `guizang-ppt` bundle from [`op7418/guizang-ppt-skill`](https://github.com/op7418/guizang-ppt-skill) — default for deck mode, ships its own assets/template + 4 references). Skills with side files get an automatic "Skill root (absolute)" preamble so the agent can resolve `assets/template.html` and `references/*.md` against the real on-disk path instead of its CWD.
+- **Prototype** — `web-prototype` (genérico), `saas-landing`, `dashboard`, `pricing-page`, `docs-page`, `blog-post`, `mobile-app`.
+- **Deck / PPT** — `simple-deck` (swipe horizontal de arquivo único) e `magazine-web-ppt` (o bundle `guizang-ppt` de [`op7418/guizang-ppt-skill`](https://github.com/op7418/guizang-ppt-skill) — default do modo deck, traz seus próprios assets/template + 4 referências). Skills com arquivos auxiliares ganham um preâmbulo automático "Skill root (absolute)" para que o agente resolva `assets/template.html` e `references/*.md` contra o caminho real em disco em vez do CWD.
 
-Pair a skill with a design system and a single prompt produces a layout-appropriate prototype or deck in the chosen visual language.
+Combine um skill com um design system e um único prompt produz um protótipo ou deck com layout adequado, na linguagem visual escolhida.
 
-## Other scripts
+## Outros scripts
 
 ```bash
 pnpm tools-dev                 # daemon + web + desktop in the background
@@ -196,24 +69,24 @@ pnpm tools-dev logs            # show daemon/web/desktop logs
 pnpm tools-dev check           # status + recent logs + common diagnostics
 pnpm tools-dev stop            # stop managed runtimes
 pnpm --filter @open-design/daemon build  # build apps/daemon/dist/cli.js for `od`
-pnpm --filter @open-design/web build     # build the web package when needed
+pnpm --filter @open-design/web build     # build do pacote web quando necessário
 pnpm typecheck                 # workspace typecheck
 ```
 
-`pnpm tools-dev` is the only local lifecycle entry point. Do not use the removed legacy root aliases (`pnpm dev`, `pnpm dev:all`, `pnpm daemon`, `pnpm preview`, `pnpm start`).
+`pnpm tools-dev` é o único entrypoint do ciclo de vida local. Não use os antigos atalhos do root removidos (`pnpm dev`, `pnpm dev:all`, `pnpm daemon`, `pnpm preview`, `pnpm start`).
 
-During local development, `tools-dev` starts the daemon first, passes its port into `apps/web`, and `apps/web/next.config.ts` rewrites `/api/*`, `/artifacts/*`, and `/frames/*` to that daemon port so the App Router app can talk to the sibling Express process without CORS setup.
+Em desenvolvimento local, o `tools-dev` sobe o daemon primeiro, repassa a porta dele para `apps/web`, e o `apps/web/next.config.ts` reescreve `/api/*`, `/artifacts/*` e `/frames/*` para essa porta de daemon, permitindo que o app do App Router fale com o processo Express irmão sem configurar CORS.
 
-## Media generation / agent dispatcher checks
+## Verificações de geração de mídia / dispatcher de agente
 
-Image, video, audio, and HyperFrames skills call the local `od` CLI through environment variables injected by the daemon when it spawns an agent:
+Skills de imagem, vídeo, áudio e HyperFrames chamam o CLI local `od` por meio de variáveis de ambiente que o daemon injeta ao spawnar um agente:
 
-- `OD_BIN` — absolute path to `apps/daemon/dist/cli.js`.
-- `OD_DAEMON_URL` — the running daemon URL.
-- `OD_PROJECT_ID` — the active project id.
-- `OD_PROJECT_DIR` — the active project's file directory.
+- `OD_BIN` — caminho absoluto para `apps/daemon/dist/cli.js`.
+- `OD_DAEMON_URL` — URL do daemon em execução.
+- `OD_PROJECT_ID` — id do projeto ativo.
+- `OD_PROJECT_DIR` — diretório de arquivos do projeto ativo.
 
-If media generation fails with `OD_BIN: parameter not set`, `apps/daemon/dist/cli.js` missing, or `failed to reach daemon at http://127.0.0.1:0`, rebuild the daemon CLI and restart the managed runtime:
+Se a geração de mídia falhar com `OD_BIN: parameter not set`, com `apps/daemon/dist/cli.js` ausente ou com `failed to reach daemon at http://127.0.0.1:0`, recompile o CLI do daemon e reinicie o runtime gerenciado:
 
 ```bash
 pnpm --filter @open-design/daemon build
@@ -222,7 +95,7 @@ ls -la apps/daemon/dist/cli.js
 curl -s http://127.0.0.1:7457/api/health
 ```
 
-Then open the project from the Open Design app again instead of resuming an old terminal agent session. A daemon-spawned agent should see values like:
+Em seguida, abra o projeto pelo app Open Design novamente em vez de retomar uma sessão antiga de agente no terminal. Um agente spawnado pelo daemon deve ver valores como:
 
 ```bash
 echo "OD_BIN=$OD_BIN"
@@ -232,11 +105,11 @@ echo "OD_DAEMON_URL=$OD_DAEMON_URL"
 ls -la "$OD_BIN"
 ```
 
-`OD_DAEMON_URL` must be a real daemon port such as `http://127.0.0.1:7457`, not `http://127.0.0.1:0`. The `:0` value is only an internal "pick a free port" launch hint and should not leak into agent sessions.
+`OD_DAEMON_URL` precisa ser uma porta de daemon real, como `http://127.0.0.1:7457`, e não `http://127.0.0.1:0`. O `:0` é apenas uma dica interna de "escolha uma porta livre" no launch e não deveria vazar para sessões de agente.
 
-For the daemon-only production mode, the daemon serves the static Next.js export itself at `http://localhost:7456`, so no reverse proxy is involved.
+No modo de produção daemon-only, o próprio daemon serve o export estático do Next.js em `http://localhost:7456`, então não há reverse proxy envolvido.
 
-If you place nginx in front of the daemon, keep SSE routes unbuffered and uncompressed. A common failure is the browser console showing `net::ERR_INCOMPLETE_CHUNKED_ENCODING 200 (OK)` after 80-90 seconds because nginx `gzip on` buffers chunked SSE responses even when the daemon sends `X-Accel-Buffering: no`.
+Se você colocar nginx na frente do daemon, mantenha as rotas SSE sem buffering e sem compressão. Uma falha comum é o console do navegador mostrar `net::ERR_INCOMPLETE_CHUNKED_ENCODING 200 (OK)` depois de 80–90 segundos, porque o `gzip on` do nginx bufferiza respostas SSE em chunks mesmo quando o daemon envia `X-Accel-Buffering: no`.
 
 ```nginx
 location /api/ {
@@ -257,18 +130,18 @@ location /api/ {
 }
 ```
 
-## Two execution modes
+## Dois modos de execução
 
-| Mode | Picker value | How a request flows |
+| Modo | Valor no picker | Como uma requisição flui |
 |---|---|---|
-| **Local CLI** (default when daemon detects an agent) | "Local CLI" | Frontend → daemon `/api/chat` → `spawn(<agent>, ...)` → stdout → SSE → artifact parser → preview |
-| **API mode** (fallback / no CLI) | "Anthropic API" / "OpenAI API" / "Azure OpenAI" / "Google Gemini" | Frontend → daemon `/api/proxy/{provider}/stream` → provider SSE normalized to `delta/end/error` → artifact parser → preview |
+| **Local CLI** (default quando o daemon detecta um agente) | "Local CLI" | Frontend → daemon `/api/chat` → `spawn(<agent>, ...)` → stdout → SSE → parser de artifact → preview |
+| **API mode** (fallback / sem CLI) | "Anthropic API" / "OpenAI API" / "Azure OpenAI" / "Google Gemini" | Frontend → daemon `/api/proxy/{provider}/stream` → SSE do provider normalizado para `delta/end/error` → parser de artifact → preview |
 
-Both modes feed the **same** `<artifact>` parser and the **same** sandboxed iframe. The only thing that differs is the transport and the system-prompt delivery (local CLIs have no separate system channel, so the composed prompt is folded into the user message).
+Os dois modos alimentam o **mesmo** parser de `<artifact>` e o **mesmo** iframe sandboxed. A única diferença é o transporte e a entrega do system prompt (CLIs locais não têm um canal de sistema separado, então o prompt composto é dobrado dentro da mensagem do usuário).
 
-## Prompt composition
+## Composição de prompt
 
-For every send, the app builds a system prompt from three layers and sends it to the provider:
+A cada envio, o app monta um system prompt a partir de três camadas e o envia ao provider:
 
 ```
 BASE_SYSTEM_PROMPT   (output contract: wrap in <artifact>, no code fences)
@@ -276,9 +149,9 @@ BASE_SYSTEM_PROMPT   (output contract: wrap in <artifact>, no code fences)
    + active skill body          (SKILL.md — workflow and output rules)
 ```
 
-Swap the skill or the design system in the top bar and the next send uses the new stack. Bodies are cached in-memory per session so this is a single daemon fetch per pick.
+Troque o skill ou o design system na barra superior e o próximo envio usa a nova stack. Os corpos ficam em cache em memória por sessão, então é um único fetch ao daemon por escolha.
 
-## File map
+## Mapa de arquivos
 
 ```
 open-design/
@@ -287,7 +160,7 @@ open-design/
 │   │   └── src/
 │   │       ├── cli.ts             # `od` bin entry
 │   │       ├── server.ts          # /api/* + static serving
-│   │       ├── agents.ts          # PATH scanner for claude/codex/devin/gemini/opencode/cursor-agent/qwen/qoder/copilot
+│   │       ├── agents.ts          # PATH scanner for claude/codex/devin/gemini/opencode/cursor-agent/qwen/copilot
 │   │       ├── skills.ts          # SKILL.md loader (frontmatter parser)
 │   │       └── design-systems.ts  # DESIGN.md loader
 │   │   ├── sidecar/           # tools-dev daemon sidecar wrapper
@@ -339,27 +212,19 @@ open-design/
 └── package.json               # root quality scripts + `od` bin
 ```
 
-## Troubleshooting
+## Solução de problemas
 
-- **`better-sqlite3` fails to load / ABI mismatch after a Node.js version change** — `pnpm install` re-runs `postinstall` automatically and rebuilds the native addon for the current Node.js. To rebuild manually or verify the fix: `pnpm --filter @open-design/daemon rebuild better-sqlite3` then `pnpm --filter @open-design/daemon exec node -e "require('better-sqlite3')"`. Requires build tools: `python3`, `make`, `g++` (or `clang++`). If you have `ignore-scripts=true` in your `.npmrc`, run `node scripts/postinstall.mjs` after `pnpm install`.
-- **"no agents found on PATH"** — install one of: `claude`, `codex`, `devin`, `gemini`, `opencode`, `cursor-agent`, `qwen`, `qodercli`, `copilot`. Or switch to API mode in Settings and paste a provider key.
-- **Claude Code exits with code 1** — Open Design was able to start `claude`, but the spawned non-interactive run failed before producing a response. From the same shell or app environment that starts Open Design, check:
-  ```bash
-  claude --version
-  claude auth status --text
-  printf 'hello' | claude -p --output-format stream-json --verbose --permission-mode bypassPermissions
-  ```
-  If the smoke test reports `401`, `apiKeySource: "none"`, or another auth error without a custom endpoint, run `claude`, use `/login`, exit Claude, and retry Open Design. If you use multiple Claude profiles, set **Settings -> Execution mode -> Claude Code config directory** to the profile path such as `~/.claude-2`. If `ANTHROPIC_BASE_URL` or a proxy is set, check the endpoint URL, proxy credentials, endpoint auth environment, and model access; remove the custom endpoint only if you want to retry with standard Claude Code auth. On Windows, native PowerShell and WSL use separate Claude installs and credential stores; re-authenticate in the same environment Open Design uses, and check Windows Credential Manager if `/login` does not repair native Windows credentials.
-- **daemon 500 on /api/chat** — check the daemon terminal for the stderr tail; usually the CLI rejected its args. Different CLIs take different argv shapes; see `apps/daemon/src/agents.ts` `buildArgs` if you need to tweak.
-- **media generation says `OD_BIN` is missing or daemon URL is `:0`** — run the media dispatcher checks above. Do not resume the old CLI session; reopen the project from the Open Design app so the daemon can inject fresh `OD_*` variables.
-- **Codex loads too much plugin context** — start Open Design with `OD_CODEX_DISABLE_PLUGINS=1 pnpm tools-dev` to make daemon-spawned Codex processes run with `--disable plugins`.
-- **artifact never renders** — the model produced text without wrapping in `<artifact>`. Confirm the system prompt is going through (check daemon log) and consider switching to a more capable model or a stricter skill.
+- **"no agents found on PATH"** — instale um destes: `claude`, `codex`, `devin`, `gemini`, `opencode`, `cursor-agent`, `qwen`, `copilot`. Ou troque para o modo API em Settings e cole uma chave de provider.
+- **daemon 500 em /api/chat** — confira o terminal do daemon para a tail de stderr; geralmente o CLI rejeitou os args. CLIs diferentes aceitam formatos de argv diferentes; veja `buildArgs` em `apps/daemon/src/agents.ts` se precisar ajustar.
+- **geração de mídia diz que `OD_BIN` está faltando ou que a URL do daemon é `:0`** — rode as verificações do dispatcher de mídia acima. Não retome a sessão antiga do CLI; reabra o projeto pelo app Open Design para o daemon injetar variáveis `OD_*` novas.
+- **Codex carrega muito contexto de plugin** — suba o Open Design com `OD_CODEX_DISABLE_PLUGINS=1 pnpm tools-dev` para que processos Codex spawnados pelo daemon rodem com `--disable plugins`.
+- **artifact nunca renderiza** — o modelo emitiu texto sem empacotar em `<artifact>`. Confirme que o system prompt está chegando (cheque o log do daemon) e considere trocar para um modelo mais capaz ou um skill mais estrito.
 
-## Mapping back to the vision
+## Voltando à visão
 
-This Quickstart is the runnable seed of the spec in [`docs/`](docs/). The spec describes where this grows (see [`docs/roadmap.md`](docs/roadmap.md)). Highlights:
+Este Início rápido é a semente executável da spec em [`docs/`](docs/). A spec descreve para onde isso evolui (veja [`docs/roadmap.md`](docs/roadmap.md)). Destaques:
 
-- `docs/architecture.md` describes the shipped stack: Next.js 16 App Router in front, local daemon behind it, and `apps/web/next.config.ts` rewrites in dev to keep the browser talking to the same `/api` surface.
-- `docs/skills-protocol.md` describes the full `od:` frontmatter (typed inputs, sliders, capability gating). This MVP reads `name` / `description` / `triggers` / `od.mode` / `od.design_system.requires` only — extend `apps/daemon/src/skills.ts` to add the rest.
-- `docs/agent-adapters.md` foresees richer dispatch (capability detection, streaming tool-calls). Our `apps/daemon/src/agents.ts` is a minimal dispatcher — enough to prove the wiring.
-- `docs/modes.md` lists four modes: prototype / deck / template / design-system. We ship skills for the first two; the picker already filters by `mode`.
+- `docs/architecture.md` descreve a stack entregue: Next.js 16 App Router na frente, daemon local atrás, e os rewrites de `apps/web/next.config.ts` em dev mantendo o navegador conversando com a mesma superfície `/api`.
+- `docs/skills-protocol.md` descreve o frontmatter `od:` completo (inputs tipados, sliders, gating de capacidades). Este MVP lê apenas `name` / `description` / `triggers` / `od.mode` / `od.design_system.requires` — estenda `apps/daemon/src/skills.ts` para cobrir o resto.
+- `docs/agent-adapters.md` prevê dispatch mais rico (detecção de capacidade, tool-calls em streaming). Nosso `apps/daemon/src/agents.ts` é um dispatcher mínimo — suficiente para provar a fiação.
+- `docs/modes.md` lista quatro modos: prototype / deck / template / design-system. Entregamos skills para os dois primeiros; o picker já filtra por `mode`.

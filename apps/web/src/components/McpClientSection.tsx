@@ -220,43 +220,43 @@ const CATEGORY_ORDER: ReadonlyArray<{
 }> = [
   {
     id: 'image-generation',
-    label: 'Image generation',
-    hint: 'Models that produce raster, vector or video assets.',
+    label: 'Geração de imagens',
+    hint: 'Modelos que produzem recursos raster, vetor ou vídeo.',
   },
   {
     id: 'image-editing',
-    label: 'Image editing',
-    hint: 'Local post-processing, OCR and CV-driven edits.',
+    label: 'Edição de imagens',
+    hint: 'Pós-processamento local, OCR e edições baseadas em CV.',
   },
   {
     id: 'web-capture',
-    label: 'Web capture',
-    hint: 'Render a URL into an image so the agent can see what it built.',
+    label: 'Captura web',
+    hint: 'Renderiza uma URL em uma imagem para que o agente possa ver o que construiu.',
   },
   {
     id: 'design-systems',
-    label: 'Design systems',
-    hint: 'Figma read/write, design-token translation, brand inspiration.',
+    label: 'Sistemas de design',
+    hint: 'Leitura/escrita no Figma, tradução de design tokens, inspiração de marca.',
   },
   {
     id: 'ui-components',
-    label: 'UI components',
-    hint: 'Designer-grade components, blocks and landing-page material.',
+    label: 'Componentes de UI',
+    hint: 'Componentes de nível profissional, blocos e material para landing pages.',
   },
   {
     id: 'data-viz',
-    label: 'Data viz',
-    hint: 'Charts and diagrams as proper image artifacts.',
+    label: 'Visualização de dados',
+    hint: 'Gráficos e diagramas como artefatos de imagem propriamente ditos.',
   },
   {
     id: 'publishing',
-    label: 'Publishing',
-    hint: 'Push generated artifacts to a public URL.',
+    label: 'Publicação',
+    hint: 'Envia artefatos gerados para uma URL pública.',
   },
   {
     id: 'utilities',
-    label: 'Utilities',
-    hint: 'Filesystem, fetch, GitHub and similar generic tools.',
+    label: 'Utilitários',
+    hint: 'Sistema de arquivos, fetch, GitHub e ferramentas genéricas similares.',
   },
 ];
 
@@ -273,19 +273,19 @@ function templateMatchesQuery(tpl: McpTemplate, q: string): boolean {
 
 function validateRow(r: DraftRow): string | null {
   if (!ID_PATTERN.test(r.id)) {
-    return 'ID must start with a letter or digit and only contain letters, digits, dash, or underscore (max 64 chars).';
+    return 'O ID deve começar com uma letra ou dígito e conter apenas letras, dígitos, traço ou sublinhado (máx. 64 caracteres).';
   }
   if (r.transport === 'stdio') {
-    if (!r.command || !r.command.trim()) return 'Command is required for stdio transport.';
+    if (!r.command || !r.command.trim()) return 'Comando é obrigatório para transporte stdio.';
   } else {
-    if (!r.url || !r.url.trim()) return 'URL is required for SSE / HTTP transport.';
+    if (!r.url || !r.url.trim()) return 'URL é obrigatória para transporte SSE / HTTP.';
     try {
       const parsed = new URL(r.url);
       if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-        return 'URL must use http:// or https://.';
+        return 'A URL deve usar http:// ou https://.';
       }
     } catch {
-      return 'URL is malformed.';
+      return 'URL malformada.';
     }
   }
   return null;
@@ -616,24 +616,24 @@ function PickerPanel({
     <div className="mcp-picker">
       <div className="mcp-picker-head">
         <div className="mcp-picker-head-row">
-          <strong>Pick a template</strong>
+          <strong>Escolha um modelo</strong>
           <button
             type="button"
             className="icon-btn mcp-picker-close"
             onClick={onClose}
-            title="Close picker"
-            aria-label="Close picker"
+            title="Fechar seletor"
+            aria-label="Fechar seletor"
           >
             ×
           </button>
         </div>
         <span className="hint">
-          Pre-fills the form. You can still edit any field after.
+          Preenche o formulário automaticamente. Você ainda pode editar qualquer campo depois.
         </span>
         <input
           type="search"
           className="mcp-picker-search"
-          placeholder="Filter by name, transport, capability…"
+          placeholder="Filtrar por nome, transporte, capacidade…"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           spellCheck={false}
@@ -645,8 +645,8 @@ function PickerPanel({
         {renderGroups}
         {hasQuery && visibleTotal === 0 ? (
           <div className="mcp-picker-empty hint">
-            No templates match &ldquo;{trimmed}&rdquo;. Try clearing the filter
-            or use the custom server option below.
+            Nenhum modelo corresponde a &ldquo;{trimmed}&rdquo;. Tente limpar o filtro
+            ou use a opção de servidor personalizado abaixo.
           </div>
         ) : null}
       </div>
@@ -659,10 +659,10 @@ function PickerPanel({
         >
           <span className="mcp-picker-item-head">
             <Icon name="settings" size={13} />
-            <strong>Custom server</strong>
+            <strong>Servidor personalizado</strong>
           </span>
           <span className="mcp-picker-desc">
-            Empty form. Pick stdio or SSE / HTTP and fill the fields yourself.
+            Formulário vazio. Escolha stdio ou SSE / HTTP e preencha os campos manualmente.
           </span>
         </button>
       </div>
@@ -693,7 +693,7 @@ function PickerCard({
         <span className="mcp-picker-desc">{tpl.description}</span>
         {tpl.example ? (
           <span className="mcp-picker-example">
-            <span className="mcp-picker-example-label">Try:</span>
+            <span className="mcp-picker-example-label">Experimente:</span>
             <span className="mcp-picker-example-text">"{tpl.example}"</span>
           </span>
         ) : null}
@@ -707,7 +707,7 @@ function PickerCard({
           title={tpl.homepage}
         >
           <Icon name="external-link" size={11} />
-          <span>Homepage</span>
+          <span>Página inicial</span>
         </a>
       ) : null}
     </div>
@@ -732,7 +732,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
   const isHttpLike = row.transport === 'http' || row.transport === 'sse';
   const usesManagedOAuth = isHttpLike && effectiveMcpAuthMode(row) === 'oauth';
   const [expanded, setExpanded] = useState<boolean>(false);
-  const summaryTitle = row.label?.trim() || row.id || 'Unnamed MCP server';
+  const summaryTitle = row.label?.trim() || row.id || 'Servidor MCP sem nome';
   const [showMcpExample, setShowMcpExample] = useState<boolean>(false);
   const helperId = `mcp-json-helper-panel-${row._localId}`;
 
@@ -743,12 +743,12 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
       }`}
     >
       <div className="mcp-row-head">
-        <label className="mcp-row-toggle" title={row.enabled ? 'Enabled' : 'Disabled'}>
+        <label className="mcp-row-toggle" title={row.enabled ? 'Ativado' : 'Desativado'}>
           <input
             type="checkbox"
             checked={row.enabled}
             onChange={(e) => onChange({ enabled: e.target.checked })}
-            aria-label="Enable this MCP server"
+            aria-label="Ativar este servidor MCP"
           />
         </label>
         {expanded ? (
@@ -756,7 +756,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
             type="text"
             className="mcp-row-label"
             value={row.label ?? ''}
-            placeholder="Display name (optional)"
+            placeholder="Nome de exibição (opcional)"
             onChange={(e) => onChange({ label: e.target.value })}
           />
         ) : (
@@ -764,12 +764,12 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
             type="button"
             className="mcp-row-summary-title"
             onClick={() => setExpanded(true)}
-            title="Expand to edit"
+            title="Expandir para editar"
           >
             <span className="mcp-row-summary-name">{summaryTitle}</span>
             <span
               className="mcp-row-summary-transport"
-              aria-label={`Transport: ${row.transport}`}
+              aria-label={`Transporte: ${row.transport}`}
             >
               {row.transport}
             </span>
@@ -780,12 +780,12 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
         </span>
         <div className="mcp-row-actions">
           {onMoveUp ? (
-            <button type="button" className="icon-btn" onClick={onMoveUp} title="Move up">
+            <button type="button" className="icon-btn" onClick={onMoveUp} title="Mover para cima">
               ↑
             </button>
           ) : null}
           {onMoveDown ? (
-            <button type="button" className="icon-btn" onClick={onMoveDown} title="Move down">
+            <button type="button" className="icon-btn" onClick={onMoveDown} title="Mover para baixo">
               ↓
             </button>
           ) : null}
@@ -793,7 +793,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
             type="button"
             className="icon-btn"
             onClick={onRemove}
-            title="Remove this MCP server"
+            title="Remover este servidor MCP"
           >
             ×
           </button>
@@ -802,8 +802,8 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
             className="icon-btn mcp-row-toggle-btn"
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
-            aria-label={expanded ? 'Collapse this MCP server' : 'Expand this MCP server'}
-            title={expanded ? 'Collapse' : 'Expand'}
+            aria-label={expanded ? 'Recolher este servidor MCP' : 'Expandir este servidor MCP'}
+            title={expanded ? 'Recolher' : 'Expandir'}
           >
             <Icon name="chevron-down" size={13} />
           </button>
@@ -816,7 +816,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
             <details className="mcp-row-info">
               <summary className="mcp-row-info-summary">
                 <span className="mcp-row-info-summary-label">
-                  About {template.label}
+                  Sobre {template.label}
                 </span>
                 {template.homepage ? (
                   <a
@@ -828,7 +828,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Icon name="external-link" size={11} />
-                    <span>Homepage</span>
+                    <span>Página inicial</span>
                   </a>
                 ) : null}
               </summary>
@@ -839,9 +839,9 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
                 {template.example ? (
                   <p
                     className="mcp-row-info-example"
-                    title="Paste this prompt into the chat composer to try the server end-to-end"
+                    title="Cole este prompt no compositor de chat para testar o servidor de ponta a ponta"
                   >
-                    <span className="mcp-row-info-example-label">Try:</span>{' '}
+                    <span className="mcp-row-info-example-label">Experimente:</span>{' '}
                     <span className="mcp-row-info-example-text">"{template.example}"</span>
                   </p>
                 ) : null}
@@ -854,22 +854,22 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
               <McpOAuthControl serverId={row.id} />
             ) : (
               <div className="mcp-oauth-hint hint">
-                <strong>No managed OAuth.</strong> Open Design will use this
-                server as configured. Add headers below if the server needs a
-                token.
+                <strong>OAuth não gerenciado.</strong> O Open Design usará este
+                servidor conforme configurado. Adicione cabeçalhos abaixo se o
+                servidor precisar de um token.
               </div>
             )
           ) : null}
           {isHttpLike && row._isNew && usesManagedOAuth ? (
             <div className="mcp-oauth-hint hint">
-              Save first, then click <strong>Connect</strong> to grant Open Design
-              access via the provider's OAuth flow.
+              Salve primeiro, depois clique em <strong>Conectar</strong> para conceder
+              ao Open Design acesso via fluxo OAuth do provedor.
             </div>
           ) : null}
           {isHttpLike && row._isNew && !usesManagedOAuth ? (
             <div className="mcp-oauth-hint hint">
-              <strong>No managed OAuth.</strong> Save this server and Open Design
-              will use it directly.
+              <strong>OAuth não gerenciado.</strong> Salve este servidor e o Open Design
+              o usará diretamente.
             </div>
           ) : null}
 
@@ -911,7 +911,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
                 <input
                   type="text"
                   value={row.command ?? ''}
-                  placeholder="e.g. npx, node, /path/to/binary"
+                  placeholder="ex.: npx, node, /caminho/do/binário"
                   onChange={(e) => onChange({ command: e.target.value })}
                   spellCheck={false}
                 />
@@ -921,7 +921,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
                 <input
                   type="text"
                   value={(row.args ?? []).join(' ')}
-                  placeholder="space-separated"
+                  placeholder="separados por espaço"
                   onChange={(e) =>
                     onChange({
                       args: e.target.value
@@ -956,8 +956,8 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
                     })
                   }
                 >
-                  <option value="none">No managed OAuth</option>
-                  <option value="oauth">Managed OAuth</option>
+                  <option value="none">OAuth não gerenciado</option>
+                  <option value="oauth">OAuth gerenciado</option>
                 </select>
               </label>
               <label className="mcp-row-field mcp-row-field-stack">
@@ -999,7 +999,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
                   <Icon name="eye" />
                 </span>
                 <span className="mcp-json-helper-toggle-text">
-                  Need help? Map your MCP server's JSON config using the example below.
+                  Precisa de ajuda? Mapeie a configuração JSON do seu servidor MCP usando o exemplo abaixo.
                 </span>
               </span>
               <span className="mcp-json-helper-toggle-icon">
@@ -1014,7 +1014,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
             {showMcpExample && (
               <div className="mcp-json-helper-example" id={helperId}>
                 <div className="mcp-json-helper-example-head">
-                  Example MCP JSON
+                  Exemplo de JSON MCP
                 </div>
                 <pre className="mcp-json-helper-code">
                   <code>
@@ -1069,7 +1069,7 @@ function McpRow({ row, idx, total, template, onChange, onRemove, onMoveUp, onMov
                   </div>
                   <div>
                     <strong>HTTP / SSE</strong>
-                    <code>use url + headers instead of command / args</code>
+                    <code>use url + headers em vez de command / args</code>
                   </div>
                 </div>
               </div>
@@ -1298,7 +1298,7 @@ function McpOAuthControl({ serverId }: { serverId: string }) {
               className="primary"
               onClick={onConnect}
               disabled={busy !== 'idle' && busy !== 'refreshing'}
-              title="Reauthenticate (replaces the existing token)"
+              title="Reautenticar (substitui o token existente)"
             >
               {busy === 'starting' || busy === 'awaiting' ? 'Connecting…' : 'Reconnect'}
             </button>
@@ -1306,7 +1306,7 @@ function McpOAuthControl({ serverId }: { serverId: string }) {
               type="button"
               onClick={onRefreshStatus}
               disabled={busy !== 'idle' && busy !== 'refreshing'}
-              title="Re-check token status against the daemon"
+              title="Verificar novamente o status do token junto ao daemon"
             >
               {busy === 'refreshing' ? 'Checking…' : 'Refresh'}
             </button>

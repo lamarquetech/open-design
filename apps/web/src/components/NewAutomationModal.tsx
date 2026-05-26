@@ -40,20 +40,20 @@ type SelectedContextItem = {
 };
 
 const SCHEDULE_KINDS: { kind: ScheduleKind; label: string }[] = [
-  { kind: 'hourly', label: 'Hourly' },
-  { kind: 'daily', label: 'Daily' },
-  { kind: 'weekdays', label: 'Weekdays' },
-  { kind: 'weekly', label: 'Weekly' },
+  { kind: 'hourly', label: 'De hora em hora' },
+  { kind: 'daily', label: 'Diariamente' },
+  { kind: 'weekdays', label: 'Dias úteis' },
+  { kind: 'weekly', label: 'Semanalmente' },
 ];
 
 const WEEKDAY_LABELS: { value: Weekday; short: string; long: string }[] = [
-  { value: 0, short: 'Sun', long: 'Sunday' },
-  { value: 1, short: 'Mon', long: 'Monday' },
-  { value: 2, short: 'Tue', long: 'Tuesday' },
-  { value: 3, short: 'Wed', long: 'Wednesday' },
-  { value: 4, short: 'Thu', long: 'Thursday' },
-  { value: 5, short: 'Fri', long: 'Friday' },
-  { value: 6, short: 'Sat', long: 'Saturday' },
+  { value: 0, short: 'Dom', long: 'Domingo' },
+  { value: 1, short: 'Seg', long: 'Segunda-feira' },
+  { value: 2, short: 'Ter', long: 'Terça-feira' },
+  { value: 3, short: 'Qua', long: 'Quarta-feira' },
+  { value: 4, short: 'Qui', long: 'Quinta-feira' },
+  { value: 5, short: 'Sex', long: 'Sexta-feira' },
+  { value: 6, short: 'Sáb', long: 'Sábado' },
 ];
 
 const FALLBACK_TIMEZONES = [
@@ -125,17 +125,17 @@ function decomposeSchedule(schedule: RoutineSchedule): ScheduleParts {
   const time = formatTime12h(schedule.time);
   const freq =
     schedule.kind === 'daily'
-      ? 'Daily'
+      ? 'Diariamente'
       : schedule.kind === 'weekdays'
-        ? 'Weekdays'
-        : WEEKDAY_LABELS.find((w) => w.value === schedule.weekday)?.long ?? 'Sunday';
+        ? 'Dias úteis'
+        : WEEKDAY_LABELS.find((w) => w.value === schedule.weekday)?.long ?? 'Domingo';
   return { kind: 'timed', freq, time, tz };
 }
 
 export function describeScheduleSummary(schedule: RoutineSchedule): string {
   const parts = decomposeSchedule(schedule);
-  if (parts.kind === 'hourly') return `Hourly at :${parts.minute}`;
-  return `${parts.freq} at ${parts.time} · ${parts.tz}`;
+  if (parts.kind === 'hourly') return `De hora em hora às :${parts.minute}`;
+  return `${parts.freq} às ${parts.time} · ${parts.tz}`;
 }
 
 /** Renders the schedule summary as structured pill segments for better visual hierarchy. */
@@ -144,7 +144,7 @@ function buildScheduleSummaryNode(schedule: RoutineSchedule): ReactNode {
   if (parts.kind === 'hourly') {
     return (
       <span className="automation-pill__segments">
-        <span className="automation-pill__freq">Hourly</span>
+        <span className="automation-pill__freq">De hora em hora</span>
         <span className="automation-pill__sep">·</span>
         <span className="automation-pill__time">:{parts.minute}</span>
       </span>
@@ -449,12 +449,12 @@ export function NewAutomationModal({
     e.preventDefault();
     setError(null);
     if (!form.name.trim()) {
-      setError('Add a title for this automation.');
+      setError('Adicione um título para esta automação.');
       titleRef.current?.focus();
       return;
     }
     if (!form.prompt.trim()) {
-      setError('Add a prompt for the scheduled conversation.');
+      setError('Adicione um prompt para a conversa agendada.');
       return;
     }
     setSubmitting(true);
@@ -510,7 +510,7 @@ export function NewAutomationModal({
 
   const projectName = projects.find((p) => p.id === form.projectId)?.name ?? null;
   const projectLabel =
-    form.mode === 'reuse' && projectName ? projectName : 'New project each run';
+    form.mode === 'reuse' && projectName ? projectName : 'Novo projeto a cada execução';
   const scheduleLabel = describeScheduleSummary(buildSchedule(form));
   const scheduleLabelNode = buildScheduleSummaryNode(buildSchedule(form));
   const mentionQueryNorm = (mention?.query ?? '').trim().toLowerCase();
@@ -592,7 +592,7 @@ export function NewAutomationModal({
       className="automation-modal-backdrop"
       role="dialog"
       aria-modal="true"
-      aria-label={editingId ? 'Edit automation' : 'New automation'}
+      aria-label={editingId ? 'Editar automação' : 'Nova automação'}
       data-testid="automation-modal"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -609,10 +609,10 @@ export function NewAutomationModal({
             ref={titleRef}
             type="text"
             className="automation-modal__title-input"
-            placeholder="Automation title"
+            placeholder="Título da automação"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            aria-label="Automation title"
+            aria-label="Título da automação"
             data-testid="automation-modal-title"
           />
           <div className="automation-modal__head-actions">
@@ -623,7 +623,7 @@ export function NewAutomationModal({
                 onClick={() => setPopover((p) => (p === 'template' ? null : 'template'))}
               >
                 <Icon name="sparkles" size={13} />
-                <span>{selectedTemplate?.defaultName ?? selectedTemplate?.title ?? 'Use template'}</span>
+                <span>{selectedTemplate?.defaultName ?? selectedTemplate?.title ?? 'Usar modelo'}</span>
                 <Icon name="chevron-down" size={11} />
               </button>
               {popover === 'template' ? (
@@ -638,7 +638,7 @@ export function NewAutomationModal({
               type="button"
               className="automation-modal__close"
               onClick={onClose}
-              aria-label="Close (Esc)"
+              aria-label="Fechar (Esc)"
             >
               <Icon name="close" size={14} />
             </button>
@@ -650,7 +650,7 @@ export function NewAutomationModal({
             <textarea
               ref={promptRef}
               className="automation-modal__prompt"
-              placeholder="Ask the agent what to run on this schedule, or @mention context..."
+              placeholder="Peça ao agente o que executar neste agendamento, ou @mencione contexto..."
               value={form.prompt}
               onChange={(e) => updatePrompt(e.target.value, e.target.selectionStart ?? e.target.value.length)}
               onClick={refreshMentionFromPrompt}
@@ -669,17 +669,17 @@ export function NewAutomationModal({
               id="automation-context-picker"
               className="automation-mention-popover"
               role="listbox"
-              aria-label="Automation context results"
+              aria-label="Resultados de contexto da automação"
               data-testid="automation-mention-popover"
               onMouseDown={(e) => e.preventDefault()}
             >
-              <div className="automation-mention-tabs" role="tablist" aria-label="Context type">
+              <div className="automation-mention-tabs" role="tablist" aria-label="Tipo de contexto">
                 {[
-                  ['all', 'All'],
-                  ['skills', 'Skills'],
+                  ['all', 'Todos'],
+                  ['skills', 'Habilidades'],
                   ['plugins', 'Plugins'],
                   ['mcp', 'MCP'],
-                  ['connectors', 'Connectors'],
+                  ['connectors', 'Conectores'],
                 ].map(([id, label]) => (
                   <button
                     key={id}
@@ -699,11 +699,11 @@ export function NewAutomationModal({
               <div className="automation-mention-results">
                 {!hasMentionResults ? (
                   <div className="automation-mention-empty">
-                    {mention.query ? `No results for "${mention.query}".` : 'Search skills, plugins, MCP servers, and connectors.'}
+                    {mention.query ? `Nenhum resultado para "${mention.query}".` : 'Pesquise habilidades, plugins, servidores MCP e conectores.'}
                   </div>
                 ) : null}
                 {showSkills && filteredSkills.length > 0 ? (
-                  <MentionSection label="Skills">
+                  <MentionSection label="Habilidades">
                     {filteredSkills.map((skill) => (
                       <MentionItem
                         key={`skill-${skill.id}`}
@@ -745,7 +745,7 @@ export function NewAutomationModal({
                   </MentionSection>
                 ) : null}
                 {showConnectors && filteredConnectors.length > 0 ? (
-                  <MentionSection label="Connectors">
+                  <MentionSection label="Conectores">
                     {filteredConnectors.map((connector) => (
                       <MentionItem
                         key={`connector-${connector.id}`}
@@ -763,14 +763,14 @@ export function NewAutomationModal({
           ) : null}
 
           {selectedContextItems.length > 0 ? (
-            <div className="automation-selected-context" aria-label="Selected automation context">
+            <div className="automation-selected-context" aria-label="Contexto de automação selecionado">
               {selectedContextItems.map((item) => (
                 <button
                   key={`${item.kind}-${item.id}`}
                   type="button"
                   className={`automation-selected-context__chip is-${item.kind}`}
                   onClick={() => removeSelectedContext(item.kind, item.id)}
-                  title={`Remove ${item.label}`}
+                  title={`Remover ${item.label}`}
                 >
                   <Icon name={item.icon} size={11} />
                   <span>{item.label}</span>
@@ -803,12 +803,12 @@ export function NewAutomationModal({
                       setForm({ ...form, mode: 'create_each_run', projectId: '' });
                       setPopover(null);
                     }}
-                    label="New project each run"
-                    hint="Each run starts a fresh project and conversation."
+                    label="Novo projeto a cada execução"
+                    hint="Cada execução inicia um projeto e conversa novos."
                   />
                   {projects.length > 0 ? (
                     <>
-                      <div className="automation-popover__section-label">Existing projects</div>
+                      <div className="automation-popover__section-label">Projetos existentes</div>
                       {projects.map((p) => (
                         <PopoverItem
                           key={p.id}
@@ -852,7 +852,7 @@ export function NewAutomationModal({
               className="automation-modal__cancel"
               onClick={onClose}
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="submit"
@@ -861,11 +861,11 @@ export function NewAutomationModal({
             >
               {editingId
                 ? submitting
-                  ? 'Saving...'
-                  : 'Save'
+                  ? 'Salvando...'
+                  : 'Salvar'
                 : submitting
-                  ? 'Creating...'
-                  : 'Create'}
+                  ? 'Criando...'
+                  : 'Criar'}
             </button>
           </div>
         </footer>
@@ -1071,7 +1071,7 @@ function SchedulePopover({
 
       {form.kind === 'hourly' ? (
         <label className="automation-popover__field">
-          <span>Minute of every hour</span>
+          <span>Minuto de cada hora</span>
           <input
             type="number"
             min={0}
@@ -1089,7 +1089,7 @@ function SchedulePopover({
       ) : (
         <>
           {form.kind === 'weekly' ? (
-            <div className="automation-popover__weekdays" aria-label="Weekday">
+            <div className="automation-popover__weekdays" aria-label="Dia da semana">
               {WEEKDAY_LABELS.map((d) => (
                 <button
                   key={d.value}
@@ -1105,7 +1105,7 @@ function SchedulePopover({
           ) : null}
           <div className="automation-popover__row">
             <label className="automation-popover__field">
-              <span>Time</span>
+              <span>Horário</span>
               <input
                 type="time"
                 value={form.time}
@@ -1113,7 +1113,7 @@ function SchedulePopover({
               />
             </label>
             <label className="automation-popover__field">
-              <span>Timezone</span>
+              <span>Fuso horário</span>
               <select
                 value={form.timezone}
                 onChange={(e) => setForm({ ...form, timezone: e.target.value })}
@@ -1135,7 +1135,7 @@ function SchedulePopover({
           className="automation-popover__done-btn"
           onClick={onDone}
         >
-          Done
+          Concluído
         </button>
       </div>
     </div>

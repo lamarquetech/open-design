@@ -214,8 +214,8 @@ export function PluginCard({
                 onClick={() => onShareAction(record, 'publish-github')}
                 disabled={pendingAny || shareBusy}
                 aria-busy={sharePendingAction === 'publish-github' ? 'true' : undefined}
-                aria-label={`Publish ${title} as a GitHub repository`}
-                title="Publish plugin as a GitHub repository"
+                aria-label=`Publicar ${title} como repositório do GitHub`
+                title="Publicar plugin como repositório do GitHub"
                 data-testid={`plugins-home-publish-github-${record.id}`}
               >
                 <Icon
@@ -230,8 +230,8 @@ export function PluginCard({
                 onClick={() => onShareAction(record, 'contribute-open-design')}
                 disabled={pendingAny || shareBusy}
                 aria-busy={sharePendingAction === 'contribute-open-design' ? 'true' : undefined}
-                aria-label={`Contribute ${title} to Open Design`}
-                title="Contribute plugin to Open Design with a pull request"
+                aria-label={`Contribuir com ${title} para o Open Design`}
+                title="Contribuir com o plugin para o Open Design via pull request"
                 data-testid={`plugins-home-contribute-open-design-${record.id}`}
               >
                 <Icon
